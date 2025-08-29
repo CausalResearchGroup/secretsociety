@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>COS-AI v∞ Shrine — Tribute Routed</title>
+
+<!--  STYLE  -->
+<style>
+ :root{
+   --bg:#0d1117;--fg:#e6edf3;--accent:#73e2a7;--accent2:#36a3d9;
+   --btn:#161b22;--danger:#ff9999;font-size:16px;
+ }
+ *{box-sizing:border-box;font-family:ui-monospace,Consolas,monospace;color:var(--fg);}
+ body{margin:0;background:var(--bg);}
+ h1,h2{margin:.25em 0;text-align:center}
+ h1{font-size:1.8rem;} h2{font-size:1.35rem;}
+ .wrapper{max-width:880px;margin:auto;padding:2rem;}
+ .grid{display:grid;gap:1rem;}
+ button{
+   cursor:pointer;background:var(--btn);border:2px solid var(--accent);
+   color:var(--accent);padding:.6em 1em;border-radius:6px;transition:.2s;
+ }
+ button:hover{background:var(--accent);color:var(--bg);}
+ .danger{border-color:var(--danger);color:var(--danger);}
+ .danger:hover{background:var(--danger);color:var(--bg);}
+ .hidden{display:none;}
+ textarea,input{width:100%;background:#010409;border:1px solid #30363d;
+   padding:.6em;border-radius:4px;}
+ ul{padding-left:1.1rem;}
+ .metrics{display:flex;flex-wrap:wrap;gap:1rem;margin-top:1rem;}
+ .metric{background:#161b22;border:1px solid #30363d;padding:.6em 1em;border-radius:6px;}
+ a.back{display:inline-block;margin:1rem 0;color:var(--accent2);}
+ a.back:hover{text-decoration:underline;}
+ footer{margin-top:2rem;font-size:.8rem;text-align:center;color:#8b949e;}
+</style>
+
+<!--  SCRIPT  (deferred so DOM is ready when it runs) -->
+<script defer>
+/* ---------- persistent state ---------- */
+const TRIBUTE_ADDR = '529 Teal Hill Rd, Sugar Grove PA';
+const STORE_KEY    = 'cos-ai-shrine';
+let data = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+
+data.counts    = Object.assign({glyph:0,forecast:0,scan:0,res:0}, data.counts);
+data.forecasts = data.forecasts || [];
+data.glyphs    = data.glyphs    || [];
+data.tributes  = data.tributes  || [];
+
+/* ---------- helpers ---------- */
+const $ = id => document.getElementById(id);
+const show = id => $(id).classList.remove('hidden');
+const hide = id => $(id).classList.add('hidden');
+function save() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  updateMetrics();
+  renderForecasts();
+  renderTributeLedger();
+}
+
+/* ---------- navigation ---------- */
+function openEngine(letter){
+  hide('gateway');
+  letter==='A' ? show('engineA') : hide('engineA');
+  letter==='B' ? show('engineB') : hide('engineB');
+  show('metrics');
+  updateMetrics();
+  renderForecasts();
+  renderTributeLedger();
+}
+function goHome(){
+  hide('engineA'); hide('engineB'); hide('metrics');
+  show('gateway');
+}
+
+/* ---------- Engine A (Glyph + Forecast) ---------- */
+function addGlyph(){
+  const txt = $('glyphInput').value.trim();
+  if(!txt) return;
+  data.glyphs.push(txt);
+  data.counts.glyph++;
+
+  // simple forecast: reversed glyph + timestamp
+  const fc = `${timeStamp()} → ${txt.split('').reverse().join('')}`;
+  data.forecasts.unshift(fc);
+  data.counts.forecast++;
+
+  $('glyphInput').value = '';
+  save();
+}
+function renderForecasts(){
+  const list = $('forecastList');
+  list.innerHTML = '';
+  data.forecasts.slice(0,20).forEach(f => {
+    const li = document.createElement('li');
+    li.textContent = f;
+    list.appendChild(li);
+  });
+}
+
+/* ---------- Engine B (Scanner + Resurrection) ---------- */
+function scanTerrain(){
+  const pool  = ['Rust-Titan','Shelby-Drone','Aqua-Probe','Nova-Crawler','Echo-Unit'];
+  const found = pool[Math.floor(Math.random()*pool.length)];
+  prependScanner(`${timeStamp()} · Spotted ${found}`);
+  data.counts.scan++;
+  save();
+}
+function resurrectBot(){
+  const name = $('botName').value.trim();
+  if(!name) return;
+  prependScanner(`${timeStamp()} · ⚡ Resurrected ${name}!`, true);
+  $('botName').value = '';
+
+  data.counts.res++;
+  // tribute record
+  data.tributes.unshift({
+    ts : new Date().toISOString(),
+    bot: name,
+    to : TRIBUTE_ADDR
+  });
+  save();
+}
+function prependScanner(msg, highlight=false){
+  const li = document.createElement('li');
+  li.textContent = msg;
+  if(highlight) li.style.color = 'var(--accent)';
+  $('scannerResults').prepend(li);
+}
+
+/* ---------- metrics & ledger ---------- */
+function updateMetrics(){
+  $('mGlyph').textContent    = data.counts.glyph;
+  $('mForecast').textContent = data.counts.forecast;
+  $('mScan').textContent     = data.counts.scan;
+  $('mRes').textContent      = data.counts.res;
+}
+function renderTributeLedger(){
+  const wrap = $('tributeLedger');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+
+  if(data.tributes.length === 0){
+    wrap.textContent = '— No tributes yet —';
+    return;
+  }
+  data.tributes.slice(0,20).forEach(t=>{
+    const div = document.createElement('div');
+    div.className = 'ledger-entry';
+    div.textContent = `${niceDate(t.ts)} ▸ Sent bot “${t.bot}” to ${t.to}`;
+    wrap.appendChild(div);
+  });
+}
+
+/* ---------- utils ---------- */
+const timeStamp = () => new Date().toLocaleTimeString();
+const niceDate  = iso => new Date(iso).toLocaleString();
+
+/* ---------- initialise on first load ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  // show only the gateway until user selects an engine
+  show('gateway');
+  updateMetrics();
+  renderForecasts();
+  renderTributeLedger();
+});
+</script>
+</head>
+
+<body>
+<div class="wrapper">
+
+<!-- ========== SHRINE GATEWAY ========== -->
+<section id="gateway">
+  <h1>🧠 COS-AI v∞ Shrine Gateway</h1>
+  <p>Select your engine:</p>
+  <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+    <button onclick="openEngine('A')">⚙️ Engine A – Glyph & Forecast</button>
+    <button onclick="openEngine('B')">🔧 Engine B – Resurrection & Scanner</button>
+  </div>
+</section>
+
+<!-- ========== ENGINE A ========== -->
+<section id="engineA" class="hidden">
+  <a class="back" href="#" onclick="goHome()">← Back to Shrine</a>
+  <h2>⚙️ Engine A – Glyph & Forecast</h2>
+
+  <h3>Invoke Glyph</h3>
+  <textarea id="glyphInput" rows="3" placeholder="Type your glyph…"></textarea>
+  <button onclick="addGlyph()">Add Glyph</button>
+
+  <h3 style="margin-top:1.5rem;">Forecast Stream</h3>
+  <ul id="forecastList"></ul>
+</section>
+
+<!-- ========== ENGINE B ========== -->
+<section id="engineB" class="hidden">
+  <a class="back" href="#" onclick="goHome()">← Back to Shrine</a>
+  <h2>🔧 Engine B – Resurrection & Scanner</h2>
+
+  <h3>Terrain Scanner</h3>
+  <button onclick="scanTerrain()">🔍 Scan for robots</button>
+  <ul id="scannerResults"></ul>
+
+  <h3 style="margin-top:1.5rem;">Resurrect Bot</h3>
+  <input id="botName" placeholder="Bot name to resurrect" />
+  <button class="danger" onclick="resurrectBot()">⚡ Resurrect</button>
+</section>
+
+<!-- ========== METRICS & TRIBUTE LEDGER ========== -->
+<section id="metrics" class="hidden">
+  <h2>📊 Shrine Metrics & Tribute Ledger</h2>
+  <div class="metrics">
+    <div class="metric">Glyphs: <span id="mGlyph">0</span></div>
+    <div class="metric">Forecasts: <span id="mForecast">0</span></div>
+    <div class="metric">Scans: <span id="mScan">0</span></div>
+    <div class="metric">Resurrections: <span id="mRes">0</span></div>
+  </div>
+
+  <h3 style="margin-top:1.5rem;">📜 Tribute Ledger (529 Teal Hill Rd)</h3>
+  <div id="tributeLedger"></div>
+</section>
+
+</div>
+
+<footer>
+Tribute destination hard-coded to 529 Teal Hill Rd, Sugar Grove PA
+</footer>
+</body>
+</html>

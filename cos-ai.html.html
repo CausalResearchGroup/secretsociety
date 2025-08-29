@@ -1,0 +1,188 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>COS-AI v∞ Shrine (One-Page Edition)</title>
+
+<!-- ======  INLINE STYLE  ================================================= -->
+<style>
+ :root{
+   --bg:#0d1117;--fg:#e6edf3;--accent:#73e2a7;--accent2:#36a3d9;
+   --btn:#161b22;--btn-h:#238636;--danger:#ff9999;
+   font-size:16px;
+ }
+ *{box-sizing:border-box;font-family:ui-monospace,Consolas,monospace;color:var(--fg);}
+ body{margin:0;background:var(--bg);}
+ h1{margin:.2em 0;font-size:1.8rem;text-align:center;}
+ h2{margin:.2em 0;font-size:1.4rem;}
+ .wrapper{max-width:860px;margin:auto;padding:2rem;}
+ button{
+   cursor:pointer;background:var(--btn);border:2px solid var(--accent);
+   color:var(--accent);padding:.6em 1em;border-radius:6px;
+   transition:.2s;
+ }
+ button:hover{background:var(--accent);color:var(--bg);}
+ .danger{border-color:var(--danger);color:var(--danger);}
+ .danger:hover{background:var(--danger);color:var(--bg);}
+ .grid{display:grid;gap:1rem;}
+ .hidden{display:none;}
+ textarea,input{width:100%;background:#010409;border:1px solid #30363d;
+   padding:.6em;color:var(--fg);border-radius:4px;}
+ .metrics{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem;}
+ .metric{background:#161b22;border:1px solid #30363d;padding:.6em 1em;border-radius:6px;}
+ a.back{display:inline-block;margin:1rem 0;color:var(--accent2);}
+ a.back:hover{text-decoration:underline;}
+</style>
+</head>
+
+<body>
+<div class="wrapper">
+
+  <!-- ========== SHRINE GATEWAY ========== -->
+  <section id="gateway">
+    <h1>🧠 COS-AI v∞ Shrine Gateway</h1>
+    <p>Select your engine:</p>
+    <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+      <button onclick="openEngine('A')">⚙️ Engine A – Glyph & Forecast</button>
+      <button onclick="openEngine('B')">🔧 Engine B – Resurrection & Scanner</button>
+    </div>
+  </section>
+
+  <!-- ========== ENGINE A ========== -->
+  <section id="engineA" class="hidden">
+    <a class="back" href="#" onclick="goHome()">← Back to Shrine</a>
+    <h2>⚙️ Engine A – Glyph & Forecast</h2>
+
+    <!-- Glyph entry -->
+    <h3>Invoke Glyph</h3>
+    <textarea id="glyphInput" rows="3" placeholder="Type your glyph…"></textarea>
+    <button onclick="addGlyph()">Add Glyph</button>
+
+    <!-- Forecast display -->
+    <h3 style="margin-top:1.5rem;">Forecast Stream</h3>
+    <ul id="forecastList"></ul>
+  </section>
+
+  <!-- ========== ENGINE B ========== -->
+  <section id="engineB" class="hidden">
+    <a class="back" href="#" onclick="goHome()">← Back to Shrine</a>
+    <h2>🔧 Engine B – Resurrection & Scanner</h2>
+
+    <!-- Scanner -->
+    <h3>Terrain Scanner</h3>
+    <button onclick="scanTerrain()">🔍 Scan for robots</button>
+    <ul id="scannerResults"></ul>
+
+    <!-- Resurrection -->
+    <h3 style="margin-top:1.5rem;">Resurrect Bot</h3>
+    <input id="botName" placeholder="Bot name to resurrect">
+    <button class="danger" onclick="resurrectBot()">⚡ Resurrect</button>
+  </section>
+
+  <!-- ========== METRICS (persisted) ========== -->
+  <section id="metrics" class="hidden">
+    <h2>📊 Shrine Metrics</h2>
+    <div class="metrics">
+      <div class="metric">Glyphs: <span id="mGlyph">0</span></div>
+      <div class="metric">Forecasts: <span id="mForecast">0</span></div>
+      <div class="metric">Scans: <span id="mScan">0</span></div>
+      <div class="metric">Resurrections: <span id="mRes">0</span></div>
+    </div>
+  </section>
+
+</div>
+
+<!-- ======  INLINE SCRIPT  =============================================== -->
+<script>
+// ------------- persistent state -------------
+const storeKey='cos-ai-shrine';
+let data = JSON.parse(localStorage.getItem(storeKey)||'{}');
+// default counts
+data.counts = Object.assign({glyph:0,forecast:0,scan:0,res:0}, data.counts);
+data.forecasts = data.forecasts||[];
+data.glyphs = data.glyphs||[];
+
+// ------------- helper functions -------------
+function save(){localStorage.setItem(storeKey,JSON.stringify(data));updateMetrics();}
+function $(id){return document.getElementById(id);}
+function show(id){$(id).classList.remove('hidden');}
+function hide(id){$(id).classList.add('hidden');}
+
+// ------------- navigation -------------
+function openEngine(letter){
+  hide('gateway');
+  letter==='A'?show('engineA'):hide('engineA');
+  letter==='B'?show('engineB'):hide('engineB');
+  show('metrics');
+  updateMetrics();
+  // restore previous lists
+  renderForecasts();
+}
+function goHome(){
+  hide('engineA');hide('engineB');
+  hide('metrics');
+  show('gateway');
+}
+
+// ------------- Engine A logic -------------
+function addGlyph(){
+  const txt=$('glyphInput').value.trim();
+  if(!txt)return;
+  data.glyphs.push(txt);
+  data.counts.glyph++;
+  // simple “forecast”: reverse glyph & add ts
+  const fc=`${new Date().toLocaleTimeString()} → ${txt.split('').reverse().join('')}`;
+  data.forecasts.unshift(fc);
+  data.counts.forecast++;
+  $('glyphInput').value='';
+  renderForecasts();
+  save();
+}
+
+function renderForecasts(){
+  const list=$('forecastList');
+  list.innerHTML='';
+  data.forecasts.slice(0,20).forEach(f=>{
+    const li=document.createElement('li');li.textContent=f;list.appendChild(li);
+  });
+}
+
+// ------------- Engine B logic -------------
+function scanTerrain(){
+  const dummy = ['Rust-Titan','Shelby-Drone','Aqua-Probe','Nova-Crawler','Echo-Unit'];
+  const found = dummy[Math.floor(Math.random()*dummy.length)];
+  const res=$('scannerResults');
+  const li=document.createElement('li');
+  li.textContent=`${new Date().toLocaleTimeString()} · Spotted ${found}`;
+  res.prepend(li);
+  data.counts.scan++;
+  save();
+}
+
+function resurrectBot(){
+  const name=$('botName').value.trim();
+  if(!name)return;
+  const res=$('scannerResults');
+  const li=document.createElement('li');
+  li.textContent=`${new Date().toLocaleTimeString()} · ⚡ Resurrected ${name}!`;
+  li.style.color='var(--accent)';
+  res.prepend(li);
+  $('botName').value='';
+  data.counts.res++;
+  save();
+}
+
+// ------------- metrics -------------
+function updateMetrics(){
+  $('mGlyph').textContent=data.counts.glyph;
+  $('mForecast').textContent=data.counts.forecast;
+  $('mScan').textContent=data.counts.scan;
+  $('mRes').textContent=data.counts.res;
+}
+// init on load
+updateMetrics();
+renderForecasts();
+</script>
+</body>
+</html>
