@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bot Restoration Relay: Unclaimed Robotics</title>
+  <style>
+    body {
+      background: #111;
+      color: #0f0;
+      font-family: monospace;
+      padding: 1rem;
+      margin: 0;
+    }
+    #log {
+      max-height: 60vh;
+      overflow-y: auto;
+      background: #222;
+      padding: 1rem;
+      border: 1px solid #0f0;
+      white-space: pre-wrap;
+      margin-bottom: 1rem;
+    }
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    input, button {
+      background: #222;
+      color: #0f0;
+      border: 1px solid #0f0;
+      padding: 0.5rem;
+      font-family: monospace;
+    }
+    button:hover {
+      background: #0f0;
+      color: #111;
+      cursor: pointer;
+    }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    #status {
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛠️ Bot Restoration Relay: Unclaimed Robotics Business</h1>
+  <div id="log"></div>
+  <div id="controls">
+    <input type="text" id="botId" placeholder="Bot ID (e.g., BOT-0001)" />
+    <input type="file" id="botDataFile" accept=".csv" />
+    <button onclick="restoreBot()">Restore Bot</button>
+    <button onclick="clearLog()">Clear Log</button>
+  </div>
+  <div id="status">Restored Bots: 0 | Inventory Value: $0</div>
+
+  <script>
+    // Log messages
+    function log(message) {
+      const logDiv = document.getElementById('log');
+      const timestamp = new Date().toLocaleString();
+      logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Bot management
+    let botData = [];
+    let restoredBots = parseInt(localStorage.getItem('restoredBots') || '0');
+    let inventoryValue = parseFloat(localStorage.getItem('inventoryValue') || '0');
+
+    // Update status
+    function updateStatus() {
+      document.getElementById('status').textContent = `Restored Bots: ${restoredBots} | Inventory Value: $${inventoryValue.toLocaleString()}`;
+      localStorage.setItem('restoredBots', restoredBots);
+      localStorage.setItem('inventoryValue', inventoryValue);
+    }
+
+    // Load bot data from CSV
+    document.getElementById('botDataFile').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) {
+        log('ERROR: No CSV file selected.');
+        return;
+      }
+      log('Loading bot data from CSV...');
+      try {
+        const text = await file.text();
+        const rows = text.split('\n').slice(1);
+        botData = rows.map((row, i) => {
+          const [id, battery_voltage, metal_condition, chip_status, value] = row.split(',');
+          return {
+            id: id || `BOT-${String(i + 1).padStart(4, '0')}`,
+            battery_voltage: parseFloat(battery_voltage) || 3.7,
+            metal_condition: parseFloat(metal_condition) || 0.8,
+            chip_status: parseFloat(chip_status) || 0.7,
+            value: parseFloat(value) || 100
+          };
+        }).filter(bot => bot.id);
+        log(`Loaded ${botData.length} bots from CSV. Ready for restoration.`);
+      } catch (error) {
+        log(`ERROR: Failed to load CSV: ${error.message}`);
+      }
+    });
+
+    // Pinata Vault for real IPFS storage
+    const pinataVault = {
+      async storeBotData(botId, data) {
+        try {
+          const response = await fetch('/api/store-bot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ botId, data })
+          });
+          if (!response.ok) throw new Error('Failed to store on Pinata');
+          const result = await response.json();
+          log(`SUCCESS: Bot ${botId} stored with IPFS Hash: ${result.ipfsHash}`);
+          return result.ipfsHash;
+        } catch (error) {
+          log(`ERROR: ${error.message}`);
+          return null;
+        }
+      }
+    };
+
+    // Restore bot
+    async function restoreBot() {
+      const botId = document.getElementById('botId').value.trim();
+      if (!botId) {
+        log('ERROR: Please enter a Bot ID.');
+        return;
+      }
+
+      const bot = botData.find(b => b.id === botId);
+      if (!bot) {
+        log(`ERROR: Bot ${botId} not found in loaded data.`);
+        return;
+      }
+
+      log(`Restoring Bot ${botId}...`);
+      try {
+        // Simulate restoration process
+        if (bot.battery_voltage < 3.0) {
+          log(`WARNING: Low battery voltage (${bot.battery_voltage}V). Charging initiated.`);
+          bot.battery_voltage = 3.7; // Simulate charge
+        }
+        if (bot.metal_condition < 0.5) {
+          log(`WARNING: Poor metal condition (${(bot.metal_condition * 100).toFixed(0)}%). Refining initiated.`);
+          bot.metal_condition = 0.8; // Simulate repair
+        }
+        if (bot.chip_status < 0.6) {
+          log(`WARNING: Chip status critical (${(bot.chip_status * 100).toFixed(0)}%). Reprogramming initiated.`);
+          bot.chip_status = 0.9; // Simulate repair
+        }
+
+        // Store restored data on Pinata
+        const restoredData = {
+          id: bot.id,
+          battery_voltage: bot.battery_voltage,
+          metal_condition: bot.metal_condition,
+          chip_status: bot.chip_status,
+          value: bot.value * 1.2 // Increased value after restoration
+        };
+        const ipfsHash = await pinataVault.storeBotData(botId, restoredData);
+        if (ipfsHash) {
+          restoredBots++;
+          inventoryValue += restoredData.value;
+          updateStatus();
+          log(`SUCCESS: Bot ${botId} restored. New value: $${restoredData.value.toLocaleString()}`);
+        }
+      } catch (error) {
+        log(`ERROR: Restoration failed: ${error.message}`);
+      }
+    }
+
+    // Clear log
+    function clearLog() {
+      document.getElementById('log').innerHTML = '';
+      log('Log cleared.');
+    }
+
+    // Initial status update
+    updateStatus();
+  </script>
+</body>
+</html>
