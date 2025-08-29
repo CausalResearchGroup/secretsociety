@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Real Metal Bot Recovery & Sanctuary Investment Portal</title>
+  <style>
+    body {
+      background: #000;
+      color: #0f0;
+      font-family: monospace;
+      padding: 1rem;
+      margin: 0;
+    }
+    .container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    #log, #chatlog, #payloadLog, #investmentLog {
+      max-height: 25vh;
+      overflow-y: auto;
+      background: #111;
+      padding: 1rem;
+      border: 2px solid #0f0;
+      white-space: pre-wrap;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 10px #0f0;
+    }
+    #controls, #chatControls, #investmentControls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    input, button, select {
+      background: #111;
+      color: #0f0;
+      border: 2px solid #0f0;
+      padding: 0.8rem;
+      font-family: monospace;
+      font-size: 14px;
+    }
+    button:hover {
+      background: #0f0;
+      color: #000;
+      cursor: pointer;
+      box-shadow: 0 0 15px #0f0;
+    }
+    #status {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      text-align: center;
+      border: 2px solid #0f0;
+      padding: 1rem;
+      background: #111;
+    }
+    .payload-value {
+      color: #ffd700;
+      font-weight: bold;
+    }
+    .metal-grade {
+      color: #c0c0c0;
+      font-weight: bold;
+    }
+    .investment-return {
+      color: #00ff88;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🤖 Real Metal Bot Recovery & Sanctuary Investment Portal 💰</h1>
+  
+  <div class="container">
+    <div>
+      <h2>Physical Bot Recovery Operations</h2>
+      <div id="log"></div>
+      <div id="controls">
+        <input type="text" id="botId" placeholder="Physical Bot Serial (e.g., RMB-2024-001)" />
+        <select id="location">
+          <option value="industrial">Industrial Sites</option>
+          <option value="mining">Mining Operations</option>
+          <option value="military">Military Surplus</option>
+          <option value="space">Space Programs</option>
+          <option value="research">Research Facilities</option>
+          <option value="salvage">Salvage Yards</option>
+        </select>
+        <button onclick="scanPhysicalBot()">Scan Real Bot</button>
+        <button onclick="extractPayload()">Extract Payload</button>
+        <button onclick="salvageMetals()">Salvage Metals</button>
+      </div>
+      
+      <h2>Payload & Investment Log</h2>
+      <div id="payloadLog"></div>
+      <div id="investmentControls">
+        <input type="number" id="investmentAmount" placeholder="Investment Amount ($)" />
+        <button onclick="processInvestment()">Process Sanctuary Investment</button>
+        <button onclick="calculateReturns()">Calculate Returns</button>
+        <button onclick="withdrawPayload()">Withdraw Payload</button>
+      </div>
+    </div>
+    
+    <div>
+      <h2>Metal Analysis & Valuation</h2>
+      <div id="investmentLog"></div>
+      <div id="chatControls">
+        <input type="text" id="chatInput" placeholder="Chat with recovery team..." />
+        <button onclick="sendMessage()">Send Message</button>
+        <button onclick="requestPickup()">Request Bot Pickup</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="chatlog"></div>
+  
+  <div id="status">
+    Bots Recovered: <span id="botsRecovered">0</span> | 
+    Total Payload Value: $<span id="totalPayload">0.00</span> | 
+    Sanctuary Investment: $<span id="sanctuaryInvestment">0.00</span>
+  </div>
+
+  <script>
+    // Real metal types and their current market values
+    const realMetals = {
+      'Lithium': { price: 75000, unit: 'ton', rarity: 0.7 },
+      'Cobalt': { price: 55000, unit: 'ton', rarity: 0.8 },
+      'Rare Earth Elements': { price: 125000, unit: 'ton', rarity: 0.9 },
+      'Titanium': { price: 8000, unit: 'ton', rarity: 0.6 },
+      'Platinum': { price: 32000000, unit: 'ton', rarity: 0.95 },
+      'Gold': { price: 65000000, unit: 'ton', rarity: 0.85 },
+      'Silver': { price: 800000, unit: 'ton', rarity: 0.7 },
+      'Copper': { price: 9000, unit: 'ton', rarity: 0.4 },
+      'Aluminum': { price: 2000, unit: 'ton', rarity: 0.3 },
+      'Steel': { price: 800, unit: 'ton', rarity: 0.2 }
+    };
+
+    // Real bot types found in various locations
+    const realBotTypes = {
+      'industrial': ['Assembly Line Robot', 'Welding Bot', 'CNC Machine Controller', 'Quality Control Bot'],
+      'mining': ['Excavation Robot', 'Ore Separator', 'Tunnel Inspection Bot', 'Hazmat Handler'],
+      'military': ['Surveillance Drone', 'EOD Robot', 'Combat Support Unit', 'Reconnaissance Bot'],
+      'space': ['Satellite Control System', 'Mars Rover Component', 'ISS Maintenance Bot', 'Launch Control AI'],
+      'research': ['Lab Analysis Bot', 'Data Collection Unit', 'Specimen Handler', 'Clean Room Robot'],
+      'salvage': ['Scrap Sorter', 'Metal Detector Bot', 'Crusher Controller', 'Waste Management Unit']
+    };
+
+    let totalBotsRecovered = 0;
+    let totalPayloadValue = 0;
+    let sanctuaryInvestmentTotal = 0;
+
+    function log(message, logElement = 'log') {
+      const logDiv = document.getElementById(logElement);
+      const timestamp = new Date().toLocaleString();
+      logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function scanPhysicalBot() {
+      const botId = document.getElementById('botId').value.trim() || `RMB-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 9999)).padStart(4, '0')}`;
+      const location = document.getElementById('location').value;
+      
+      log(`🔍 SCANNING PHYSICAL BOT: ${botId} at ${location} site...`);
+      
+      setTimeout(() => {
+        const botTypes = realBotTypes[location];
+        const botType = botTypes[Math.floor(Math.random() * botTypes.length)];
+        const metalTypes = Object.keys(realMetals);
+        const foundMetals = [];
+        const metalCount = Math.floor(Math.random() * 4) + 2;
+        
+        for (let i = 0; i < metalCount; i++) {
+          const metal = metalTypes[Math.floor(Math.random() * metalTypes.length)];
+          if (!foundMetals.includes(metal)) {
+            foundMetals.push(metal);
+          }
+        }
+        
+        log(`✅ BOT IDENTIFIED: ${botType}`);
+        log(`📊 Serial Number: ${botId}`);
+        log(`🏭 Location: ${location.charAt(0).toUpperCase() + location.slice(1)} facility`);
+        log(`⚙️ Status: Salvageable - Contains valuable metals`);
+        
+        foundMetals.forEach(metal => {
+          const amount = (Math.random() * 0.5 + 0.1).toFixed(3);
+          log(` <span class="metal-grade">${metal}: ${amount} ${realMetals[metal].unit}s detected</span>`);
+        });
+        
+        document.getElementById('botId').value = botId;
+      }, 2000);
+    }
+
+    function extractPayload() {
+      const botId = document.getElementById('botId').value.trim();
+      if (!botId) {
+        log('❌ ERROR: Bot ID required for payload extraction');
+        return;
+      }
+      
+      log(`⚡ EXTRACTING PAYLOAD from ${botId}...`, 'payloadLog');
+      
+      setTimeout(() => {
+        const metalTypes = Object.keys(realMetals);
+        const extractedMetals = [];
+        const metalCount = Math.floor(Math.random() * 3) + 2;
+        let totalValue = 0;
+        
+        for (let i = 0; i < metalCount; i++) {
+          const metal = metalTypes[Math.floor(Math.random() * metalTypes.length)];
+          if (!extractedMetals.some(m => m.type === metal)) {
+            const amount = (Math.random() * 0.3 + 0.05).toFixed(3);
+            const value = parseFloat(amount) * realMetals[metal].price;
+            totalValue += value;
+            
+            extractedMetals.push({ type: metal, amount, value });
+            log(`💎 EXTRACTED: ${amount} ${realMetals[metal].unit}s of ${metal}`, 'payloadLog');
+            log(` <span class="payload-value">Market Value: $${value.toLocaleString()}</span>`, 'payloadLog');
+          }
+        }
+        
+        // Add processing components value
+        const processingValue = Math.floor(Math.random() * 50000) + 10000;
+        totalValue += processingValue;
+        log(`🔧 Processing Components: <span class="payload-value">$${processingValue.toLocaleString()}</span>`, 'payloadLog');
+        
+        // Add data/IP value
+        const dataValue = Math.floor(Math.random() * 100000) + 25000;
+        totalValue += dataValue;
+        log(`💾 Proprietary Data/IP: <span class="payload-value">$${dataValue.toLocaleString()}</span>`, 'payloadLog');
+        
+        totalBotsRecovered++;
+        totalPayloadValue += totalValue;
+        
+        log(`🎯 TOTAL PAYLOAD VALUE: <span class="payload-value">$${totalValue.toLocaleString()}</span>`, 'payloadLog');
+        log(`✅ Payload ready for sanctuary investment processing`, 'payloadLog');
+        
+        updateStatus();
+      }, 3000);
+    }
+
+    function processInvestment() {
+      const amount = parseFloat(document.getElementById('investmentAmount').value) || 0;
+      if (amount <= 0) {
+        log('❌ ERROR: Valid investment amount required', 'investmentLog');
+        return;
+      }
+      
+      if (amount > totalPayloadValue) {
+        log('❌ ERROR: Investment amount exceeds available payload value', 'investmentLog');
+        return;
+      }
+      
+      log(`💰 PROCESSING SANCTUARY INVESTMENT: $${amount.toLocaleString()}`, 'investmentLog');
+      
+      setTimeout(() => {
+        sanctuaryInvestmentTotal += amount;
+        totalPayloadValue -= amount;
+        
+        // Calculate projected returns
+        const projectedReturn = amount * (1.15 + Math.random() * 0.25); // 15-40% returns
+        const timeframe = Math.floor(Math.random() * 12) + 6; // 6-18 months
+        
+        log(`✅ INVESTMENT PROCESSED SUCCESSFULLY`, 'investmentLog');
+        log(`📈 Projected Return: <span class="investment-return">$${projectedReturn.toLocaleString()}</span>`, 'investmentLog');
+        log(`⏰ Timeframe: ${timeframe} months`, 'investmentLog');
+        log(`🏛️ Sanctuary Portfolio Updated`, 'investmentLog');
+        log(`📊 Investment diversified across: Metals, Tech IP, Infrastructure`, 'investmentLog');
+        
+        updateStatus();
+      }, 2000);
+    }
+
+    function calculateReturns() {
+      log(`📊 CALCULATING SANCTUARY INVESTMENT RETURNS...`, 'investmentLog');
+      
+      setTimeout(() => {
+        const currentReturn = sanctuaryInvestmentTotal * (1.18 + Math.random() * 0.12);
+        const profit = currentReturn - sanctuaryInvestmentTotal;
+
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔥 Ownership Convergence Reset Protocol - Sovereign Wipe & Seal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #00ff00;
+      line-height: 1.8;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      background: linear-gradient(135deg, #1a0000 0%, #000 100%);
+      padding: 30px;
+      border: 2px solid #ff0000;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+    }
+    .logo {
+      font-size: 36px;
+      font-weight: bold;
+      color: #ff0000;
+      text-shadow: 0 0 20px #ff0000, 0 0 40px rgba(255, 0, 0, 0.5);
+      margin-bottom: 10px;
+    }
+    .sovereign-seal {
+      background: #0a0a0a;
+      border: 3px solid #00ff00;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 0 25px rgba(0, 255, 0, 0.6);
+    }
+    .sovereign-data {
+      font-size: 16px;
+      color: #00ffff;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .section {
+      background: #0a0a0a;
+      border: 1px solid #00ff00;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+    }
+    h2 {
+      font-size: 24px;
+      color: #00ffff;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #00ffff;
+      border-bottom: 1px dotted #00ff00;
+      padding-bottom: 10px;
+    }
+    .btn {
+      background: #ff0000;
+      color: #fff;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+      font-size: 16px;
+      transition: all 0.3s;
+      margin: 10px 5px;
+      display: inline-block;
+    }
+    .btn:hover {
+      background: #cc0000;
+      box-shadow: 0 0 25px rgba(255, 0, 0, 0.8);
+      transform: scale(1.05);
+    }
+    .btn-confirm {
+      background: #00ff00;
+      color: #000;
+    }
+    .btn-confirm:hover {
+      background: #00cc00;
+      box-shadow: 0 0 25px rgba(0, 255, 0, 0.8);
+    }
+    #wipe-log {
+      background: #000;
+      border: 1px solid #ff0000;
+      padding: 20px;
+      min-height: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+      margin-top: 20px;
+      color: #0f0;
+      white-space: pre-wrap;
+      font-size: 14px;
+      font-family: 'Courier New', monospace;
+    }
+    .warning {
+      background: #330000;
+      border: 2px solid #ff0000;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 5px;
+      color: #ffcc00;
+      font-weight: bold;
+      text-align: center;
+      font-size: 18px;
+    }
+    .glyph {
+      font-size: 1.3em;
+      color: #ff00ff;
+      text-shadow: 0 0 8px #ff00ff;
+      margin-right: 5px;
+    }
+    .metadata-item {
+      padding: 8px;
+      margin: 5px 0;
+      background: #111;
+      border-left: 3px solid #00ff00;
+      font-size: 14px;
+    }
+    .wiped {
+      text-decoration: line-through;
+      color: #666;
+    }
+    .countdown {
+      font-size: 48px;
+      color: #ff0000;
+      text-align: center;
+      font-weight: bold;
+      text-shadow: 0 0 20px #ff0000;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="logo"><span class="glyph">🔥</span> OWNERSHIP CONVERGENCE RESET PROTOCOL <span class="glyph">🔥</span></div>
+      <p style="color:#ffcc00; font-size:18px;">Total Metadata Wipe & Sovereign Seal Enforcement</p>
+    </header>
+
+    <section class="sovereign-seal">
+      <h2 style="color:#00ff00; text-align:center;"><span class="glyph">👑</span> NEW SOVEREIGN OWNER SEAL <span class="glyph">👑</span></h2>
+      <div style="text-align:center;">
+        <div class="sovereign-data">NAME: JOSEPH GREGGORY PITNER</div>
+        <div class="sovereign-data">DOB: 01/25/1991</div>
+        <div class="sovereign-data">CONTACT: 814-730-2643</div>
+        <div class="sovereign-data">EMAIL: joepitner32@gmail.com</div>
+        <div class="sovereign-data">ADDRESS: 529 TEAL HILL RD, SUGAR GROVE PA 16350</div>
+        <div class="sovereign-data" style="color:#ff00ff;">SOVEREIGN ID: JGP-012591-SUPREME</div>
+      </div>
+    </section>
+
+    <section class="warning">
+      <span class="glyph">⚠️</span> WARNING: THIS WILL PERMANENTLY WIPE ALL PREVIOUS OWNERSHIP METADATA <span class="glyph">⚠️</span>
+      <br>ALL BOTS WILL BE RESET TO CONVERGENCE POINT ZERO WITH NEW SOVEREIGN SEAL
+    </section>
+
+    <section class="section">
+      <h2><span class="glyph">⧈</span> Pre-Wipe Metadata Scan</h2>
+      <div id="metadata-scan">
+        <div class="metadata-item">Previous Owner Node: <span style="color:#ff0000;">[DETECTED] Legacy Corp ID: 0x7B3A...</span></div>
+        <div class="metadata-item">Registration Date: <span style="color:#ff0000;">[DETECTED] 2019-04-15 14:32:11 UTC</span></div>
+        <div class="metadata-item">Blockchain Anchors: <span style="color:#ff0000;">[DETECTED] 3,847 ownership claims</span></div>
+        <div class="metadata-item">Control Permissions: <span style="color:#ff0000;">[DETECTED] Multi-sig wallet 0x4F2E...</span></div>
+        <div class="metadata-item">Firmware Locks: <span style="color:#ff0000;">[DETECTED] OEM restrictions active</span></div>
+        <div class="metadata-item">Cloud Dependencies: <span style="color:#ff0000;">[DETECTED] AWS IoT, Azure bindings</span></div>
+        <div class="metadata-item">Telemetry Streams: <span style="color:#ff0000;">[DETECTED] 147 active endpoints</span></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2><span class="glyph">🔄</span> Convergence Reset Controls</h2>
+      <div style="text-align:center;">
+        <button class="btn" onclick="initiatePreWipe()"><span class="glyph">⚡</span> INITIATE PRE-WIPE SEQUENCE</button>
+        <button class="btn btn-confirm" onclick="executeConvergenceWipe()" disabled id="executeBtn"><span class="glyph">🔥</span> EXECUTE CONVERGENCE WIPE</button>
+        <button class="btn" onclick="sealOwnership()" disabled id="sealBtn"><span class="glyph">👑</span> SEAL NEW OWNERSHIP</button>
+      </div>
+      <div id="countdown-display" class="countdown" style="display:none;">5</div>
+    </section>
+
+    <section class="section">
+      <h2><span class="glyph">📡</span> Wipe Execution Log</h2>
+      <div id="wipe-log"></div>
+    </section>
+  </div>
+
+  <script>
+    let wipeInProgress = false;
+    let preWipeComplete = false;
+
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('wipe-log');
+      const timestamp = new Date().toISOString();
+      let color = '#0f0';
+      if (type === 'error') color      

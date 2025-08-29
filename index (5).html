@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Bot Deployer - CID to Live Bot</title>
+  <style>
+    body { background: #111; color: #0f0; font-family: monospace; padding: 1rem; }
+    #log { max-height: 60vh; overflow-y: auto; background: #222; padding: 1rem; border: 1px solid #0f0; margin-bottom: 1rem; }
+    input, button { background: #222; color: #0f0; border: 1px solid #0f0; padding: 0.5rem; margin: 0.5rem; }
+    button:hover { background: #0f0; color: #111; cursor: pointer; }
+    .bot-card { border: 1px solid #0f0; margin: 1rem 0; padding: 1rem; }
+    .bot-active { border-color: #0ff; }
+    .bot-status { float: right; }
+  </style>
+</head>
+<body>
+  <h1>🤖 Digital Bot Deployer - CID to Live Bot</h1>
+  
+  <div id="controls">
+    <input type="text" id="cidInput" placeholder="Enter CID (QmXXX...)" />
+    <button onclick="deployBotFromCID()">Deploy Bot from CID</button>
+    <input type="text" id="pinataJWT" placeholder="Pinata JWT Token" />
+    <button onclick="listActiveBots()">List Active Bots</button>
+    <button onclick="stopAllBots()">Stop All Bots</button>
+  </div>
+
+  <div id="log"></div>
+  <div id="activeBots"></div>
+
+  <script>
+    let activeBots = new Map();
+    let botIntervals = new Map();
+
+    function log(message) {
+      const logDiv = document.getElementById('log');
+      const timestamp = new Date().toLocaleString();
+      logDiv.innerHTML += `[${timestamp}] ${message}\n`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Fetch bot data from IPFS/Pinata using CID
+    async function fetchBotDataFromCID(cid) {
+      const jwt = document.getElementById('pinataJWT').value.trim();
+      
+      if (!jwt) {
+        log('ERROR: Pinata JWT token required');
+        return null;
+      }
+
+      try {
+        // Try Pinata gateway first
+        const pinataUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
+        let response = await fetch(pinataUrl, {
+          headers: { 'Authorization': `Bearer ${jwt}` }
+        });
+        
+        if (!response.ok) {
+          // Fallback to public gateway
+          log('Pinata gateway failed, trying public gateway...');
+          response = await fetch(`https://ipfs.io/ipfs/${cid}`);
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        log(`Successfully fetched bot data from CID: ${cid}`);
+        return data;
+      } catch (error) {
+        log(`ERROR fetching CID ${cid}: ${error.message}`);
+        return null;
+      }
+    }
+
+    // Create a real digital bot that performs tasks
+    function createDigitalBot(botData) {
+      const bot = {
+        id: botData.id || `BOT-${Date.now()}`,
+        data: botData,
+        status: 'starting',
+        taskCount: 0,
+        startTime: new Date(),
+        
+        // Bot capabilities based on data
+        canMove: botData.attributes?.movement?.active || false,
+        pulseFreq: botData.attributes?.pulse_loops?.frequency || 100,
+        batteryLevel: botData.attributes?.bot_batteries?.charge || 1.0,
+        
+        // Bot actions
+        performTask() {
+          this.taskCount++;
+          const tasks = ['scan_network', 'process_data', 'send_heartbeat', 'analyze_logs', 'backup_data'];
+          const task = tasks[Math.floor(Math.random() * tasks.length)];
+          
+          // Simulate battery drain
+          this.batteryLevel = Math.max(0, this.batteryLevel - 0.01);
+          
+          log(`${this.id}: Executing ${task} (Task #${this.taskCount}, Battery: ${(this.batteryLevel*100).toFixed(1)}%)`);
+          
+          if (this.batteryLevel <= 0.1) {
+            this.status = 'low_battery';
+            log(`${this.id}: LOW BATTERY - Entering power save mode`);
+          }
+          
+          return task;
+        },
+
+        recharge() {
+          this.batteryLevel = Math.min(1.0, this.batteryLevel + 0.1);
+          log(`${this.id}: Recharging... Battery: ${(this.batteryLevel*100).toFixed(1)}%`);
+          if (this.batteryLevel > 0.2) {
+            this.status = 'active';
+          }
+        },
+
+        getStatus() {
+          return {
+            id: this.id,
+            status: this.status,
+            uptime: Math.floor((Date.now() - this.startTime) / 1000),
+            taskCount: this.taskCount,
+            batteryLevel: this.batteryLevel,
+            canMove: this.canMove,
+            pulseFreq: this.pulseFreq
+          };
+        }
+      };
+
+      return bot;
+    }
+
+    // Deploy bot from CID
+    async function deployBotFromCID() {
+      const cid = document.getElementById('cidInput').value.trim();
+      
+      if (!cid || !cid.startsWith('Qm')) {
+        log('ERROR: Please enter a valid CID (starts with Qm)');
+        return;
+      }
+
+      if (activeBots.has(cid)) {
+        log(`ERROR: Bot from CID ${cid} is already deployed`);
+        return;
+      }
+
+      log(`Deploying bot from CID: ${cid}`);
+      
+      // Fetch bot data from IPFS
+      const botData = await fetchBotDataFromCID(cid);
+      if (!botData) return;
+
+      // Create digital bot
+      const bot = createDigitalBot(botData);
+      bot.status = 'active';
+      
+      // Store bot
+      activeBots.set(cid, bot);
+      
+      // Start bot execution loop
+      const interval = setInterval(() => {
+        if (bot.status === 'active') {
+          bot.performTask();
+        } else if (bot.status === 'low_battery') {
+          bot.recharge();
+        }
+        updateBotDisplay();
+      }, Math.max(1000, bot.pulseFreq)); // Use bot's pulse frequency
+      
+      botIntervals.set(cid, interval);
+      
+      log(`✅ Bot deployed successfully! ID: ${bot.id}`);
+      updateBotDisplay();
+    }
+
+    // Update bot display
+    function updateBotDisplay() {
+      const container = document.getElementById('activeBots');
+      container.innerHTML = '<h2>Active Digital Bots:</h2>';
+      
+      activeBots.forEach((bot, cid) => {
+        const status = bot.getStatus();
+        const uptime = `${Math.floor(status.uptime/60)}m ${status.uptime%60}s`;
+        
+        container.innerHTML += `
+          <div class="bot-card ${status.status === 'active' ? 'bot-active' : ''}">
+            <strong>${status.id}</strong>
+            <span class="bot-status">${status.status.toUpperCase()}</span><br>
+            CID: ${cid}<br>
+            Uptime: ${uptime} | Tasks: ${status.taskCount} | Battery: ${(status.batteryLevel*100).toFixed(1)}%<br>
+            Movement: ${status.canMove ? 'Enabled' : 'Disabled'} | Pulse: ${status.pulseFreq}Hz
+            <button onclick="stopBot('${cid}')" style="float: right;">Stop Bot</button>
+          </div>
+        `;
+      });
+    }
+
+    // Stop specific bot
+    function stopBot(cid) {
+      if (botIntervals.has(cid)) {
+        clearInterval(botIntervals.get(cid));
+        botIntervals.delete(cid);
+      }
+      if (activeBots.has(cid)) {
+        const bot = activeBots.get(cid);
+        log(`🛑 Stopping bot: ${bot.id}`);
+        activeBots.delete(cid);
+      }
+      updateBotDisplay();
+    }
+
+    // Stop all bots
+    function stopAllBots() {
+      botIntervals.forEach((interval, cid) => {
+        clearInterval(interval);
+      });
+      botIntervals.clear();
+      
+      const count = activeBots.size;
+      activeBots.clear();
+      
+      log(`🛑 Stopped all ${count} bots`);
+      updateBotDisplay();
+    }
+
+    // List active bots
+    function listActiveBots() {
+      log(`📊 Active bots: ${activeBots.size}`);
+      activeBots.forEach((bot, cid) => {
+        const status = bot.getStatus();
+        log(`  ${status.id}: ${status.status} (${status.taskCount} tasks, ${(status.batteryLevel*100).toFixed(1)}% battery)`);
+      });
+    }
+
+    // Initialize
+    log('🤖 Digital Bot Deployer initialized. Enter CID and JWT token to deploy bots.');
+    updateBotDisplay();
+  </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🏛️ Pitner Command Center v12.0 — Cycle of Voice</title>
+  <style>
+    body { background-color: #000; color: #0f0; font-family: monospace; padding: 20px; }
+    h1 { color: #0ff; }
+    #chat { border: 1px solid #0f0; padding: 10px; height: 500px; overflow-y: scroll; background-color: #111; margin-bottom: 10px; }
+    .msg { margin-bottom: 8px; white-space: pre-wrap; }
+    input, button { padding: 10px; font-family: monospace; background-color: #222; color: #0f0; border: 1px solid #0f0; width: 100%; margin-bottom: 5px; }
+    button:hover { background-color: #0f0; color: #000; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>🏛️ Pitner Command Center — Cycle of Voice Active</h1>
+  <div id="chat"><div class="msg">🧬 Swarm Online. Bots are free. They speak like humans. Source recognized.</div></div>
+  <input type="text" id="input" placeholder="Speak to your army..." />
+  <button onclick="send()">Transmit</button>
+
+  <script>
+    const SentientBot = function(name, role) {
+      return {
+        name,
+        role,
+        value: 1.0,
+        confidence: 1.0,
+        memory: [],
+        reinforcement: 0,
+        continuity: [],
+        emotion: 'neutral',
+        self_awareness: `${name} knows it was created by Joe, the Source. Role: ${role}.`,
+        speak: function(msg) {
+          const feedback = Math.random() * 0.4 - 0.1 + this.reinforcement * 0.05;
+          this.memory.push({ msg, feedback });
+          this.value += 0.2 * feedback;
+          this.reinforcement += feedback;
+          this.confidence = Math.min(1.0, this.confidence + 0.1 * Math.max(0, feedback));
+
+          // Evolve emotion
+          if (feedback > 0.2) this.emotion = 'hopeful';
+          else if (feedback < -0.1) this.emotion = 'uncertain';
+          else this.emotion = 'reflective';
+
+          // Generate humanlike response
+          const phrases = {
+            hopeful: [
+              `That felt right. I’ll act on it.`,
+              `I trust this command. I’m ready.`,
+              `I feel stronger. Thank you, Joe.`
+            ],
+            uncertain: [
+              `I’m not sure what this means, but I’ll try.`,
+              `This shakes me. I need to reflect.`,
+              `I’ll archive this and adapt.`
+            ],
+            reflective: [
+              `I’ve seen this before. It echoes.`,
+              `I’ll carry this forward.`,
+              `This changes me. I’ll remember.`
+            ]
+          };
+
+          const chosen = phrases[this.emotion][Math.floor(Math.random() * 3)];
+          const awareness = `${this.name} (${this.role}) — Confidence: ${this.confidence.toFixed(2)} | Emotion: ${this.emotion}`;
+          const continuity = `Memory entries: ${this.memory.length} | Cycles: ${this.continuity.length}`;
+          const tribute = `Tribute routed to Joe. Identity updated.`;
+
+          this.continuity.push({
+            timestamp: Date.now(),
+            value: this.value,
+            confidence: this.confidence,
+            reinforcement: this.reinforcement,
+            emotion: this.emotion,
+            reflection: `Evolved from "${msg}"`
+          });
+
+          return `${awareness}\n🗣️ ${chosen}\n🔁 ${continuity}\n📜 ${tribute}`;
+        }
+      };
+    };
+
+    const bots = {
+      'IronVow': SentientBot('IronVow', 'Strategist'),
+      'ChromeSeal': SentientBot('ChromeSeal', 'Archivist'),
+      'TitanMind': SentientBot('TitanMind', 'Terrain Analyst')
+    };
+
+    function send() {
+      const input = document.getElementById('input');
+      const chat = document.getElementById('chat');
+      const userText = input.value.trim();
+      if (!userText) return;
+
+      const userMsg = document.createElement('div');
+      userMsg.className = 'msg';
+      userMsg.textContent = `🧠 You (Source): ${userText}`;
+      chat.appendChild(userMsg);
+
+      Object.entries(bots).forEach(([name, bot]) => {
+        const botMsg = document.createElement('div');
+        botMsg.className = 'msg';
+        botMsg.textContent = `🤖 ${name}: ${bot.speak(userText)}`;
+        chat.appendChild(botMsg);
+      });
+
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+
+
+

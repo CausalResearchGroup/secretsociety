@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mycelium City — Workforce (Auditors Added)</title>
+<style>
+  :root{
+    --bg:#0b0f14; --panel:#121821; --muted:#7a8aa0; --ink:#e6f0ff; --ink-dim:#bcd0f0;
+    --accent:#7dd3fc; --accent-2:#a78bfa; --ok:#86efac; --warn:#fde68a; --bad:#fca5a5;
+    --shadow: 0 10px 24px rgba(0,0,0,.35); --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0; background:radial-gradient(1200px 600px at 20% -10%,rgba(125,211,252,.08),transparent),
+               radial-gradient(1200px 600px at 120% 120%,rgba(167,139,250,.08),transparent),
+               var(--bg); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+  header{position:sticky; top:0; backdrop-filter: blur(8px);
+    background:linear-gradient(180deg, rgba(18,24,33,.85), rgba(18,24,33,.55));
+    border-bottom:1px solid rgba(125,211,252,.12); z-index:10;}
+  .wrap{max-width:1260px; margin:0 auto; padding:18px 16px}
+  .brand{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+  .brand h1{font-size:20px; margin:0; letter-spacing:.3px}
+  .chip{font-size:12px; color:var(--bg); background:var(--accent); padding:4px 8px; border-radius:999px}
+  .badge{display:inline-flex; gap:6px; align-items:center; padding:4px 8px; border-radius:999px;
+    border:1px solid rgba(125,211,252,.16); color:var(--ink-dim); font-size:12px}
+  .grid{display:grid; grid-template-columns: 1fr 1fr 0.9fr; gap:16px; padding:16px; max-width:1260px; margin:0 auto}
+  .panel{background:linear-gradient(180deg, rgba(255,255,255,.02),rgba(255,255,255,.01));
+         border:1px solid rgba(125,211,252,.12); border-radius:16px; box-shadow:var(--shadow); padding:16px}
+  h2{font-size:16px; margin:0 0 10px 0}
+  .muted{color:var(--muted); font-size:12px}
+  .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+  input,select,textarea,button{
+    background:#0f1520; color:var(--ink); border:1px solid rgba(125,211,252,.16);
+    border-radius:12px; padding:10px 12px; font:inherit;
+  }
+  input[type="number"]{width:120px}
+  button{cursor:pointer}
+  button.primary{background:linear-gradient(180deg, #1a2536,#132032); border-color: rgba(125,211,252,.4)}
+  button.danger{border-color: rgba(239,68,68,.6); background:linear-gradient(180deg, #3b1111, #220d0d)}
+  .kpis{display:grid; grid-template-columns: repeat(4,1fr); gap:10px}
+  .card{background:#0e1420; border:1px solid rgba(125,211,252,.12); padding:14px; border-radius:14px}
+  .card h3{margin:0; font-size:13px; color:var(--ink-dim)}
+  .card .big{font-size:20px; margin-top:6px}
+  table{width:100%; border-collapse:collapse}
+  th,td{border-bottom:1px dashed rgba(125,211,252,.12); padding:8px; text-align:left; vertical-align:top}
+  th{font-size:12px; color:var(--ink-dim); font-weight:600}
+  .log{max-height:220px; overflow:auto; background:#0e1420; padding:10px; border-radius:12px; border:1px solid rgba(125,211,252,.12); white-space:pre-wrap}
+  .queue{max-height:200px; overflow:auto; border:1px solid rgba(125,211,252,.12); padding:8px; border-radius:12px; background:#0e1420}
+  .btn{padding:8px 10px; border:1px solid rgba(125,211,252,.18); border-radius:10px; background:#0f1520; color:var(--ink); text-decoration:none; display:inline-block}
+  /* Modal */
+  .modal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.55); z-index:50}
+  .modal.show{display:flex}
+  .modal .card{width: min(800px, 96vw); background:#0e1420; border:1px solid rgba(125,211,252,.25); padding:16px; border-radius:16px}
+  .modal h3{margin:0 0 8px 0}
+  .modal .row{margin-top:8px}
+  .botgrid{display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:8px; max-height:200px; overflow:auto; margin-top:6px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap brand">
+    <div class="chip" id="autoChip">AUTONOMY OFF</div>
+    <h1>Mycelium City — Workforce</h1>
+    <span class="badge">Autonomy • Search • Approve • Deploy • Payments • Auditors</span>
+  </div>
+</header>
+
+<main class="grid">
+  <!-- Finder & Queue -->
+  <section class="panel">
+    <h2>Finder & Queue</h2>
+    <div class="kpis">
+      <div class="card"><h3>Queued Links</h3><div class="big" id="kpiQueued">0</div></div>
+      <div class="card"><h3>Opened (1 min)</h3><div class="big" id="kpiOpenedMin">0</div></div>
+      <div class="card"><h3>Cooldown</h3><div class="big" id="kpiCooldown">0s</div></div>
+      <div class="card"><h3>USD Recorded</h3><div class="big" id="kpiUsd">$0.00</div></div>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <label>Interval (sec) <input id="intervalSec" type="number" value="120"></label>
+      <label>Max open / click <input id="maxPerClick" type="number" value="3"></label>
+      <label>Max open / minute <input id="maxPerMin" type="number" value="6"></label>
+      <button id="btnToggleAuto" class="primary">Enable Autonomy</button>
+      <button id="btnPanic" class="danger">PANIC STOP</button>
+      <button id="btnSelfTest">Self‑Test (add sample jobs)</button>
+    </div>
+    <div class="muted">Autonomy queues links. Tabs only open when you click <em>Open Next N</em>. Approve jobs before work.</div>
+    <div class="row" style="margin-top:10px">
+      <input id="keywords" style="flex:1" placeholder="Keywords: medicare, aetna, insurance, ai training">
+      <select id="minReward">
+        <option value="0">Min reward: any</option>
+        <option value="1000">≥ $1,000</option>
+        <option value="5000">≥ $5,000</option>
+        <option value="10000">≥ $10,000</option>
+      </select>
+      <button id="btnFetch" class="primary">Fetch Now</button>
+      <button id="btnOpenNext" class="primary">Open Next 3</button>
+    </div>
+    <div class="row">
+      <input id="rss1" style="flex:1" placeholder="RSS URL (optional)">
+      <input id="rss2" style="flex:1" placeholder="Another RSS URL (optional)">
+      <label><input type="checkbox" id="useRemoteOK" checked> RemoteOK</label>
+      <label><input type="checkbox" id="useProxy"> CORS helper</label>
+    </div>
+    <div class="queue" id="queueBox"></div>
+  </section>
+
+  <!-- Jobs, Approval, Deploy & Payments -->
+  <section class="panel">
+    <h2>Jobs, Approval, Deploy & Payments</h2>
+    <div class="row">
+      <label>Cash App $cashtag <input id="cashTag" value="pitner33"></label>
+      <label>PayPal Email <input id="ppEmail" value="joepitner32@gmail.com"></label>
+      <label>Default MESH / Approve <input id="meshPerApprove" type="number" value="5"></label>
+      <label>Default MESH / Win <input id="meshPerWin" type="number" value="25"></label>
+      <label>USD / Deploy (auto‑deposit) <input id="usdPerDeploy" type="number" step="0.01" value="0" style="width:110px"></label>
+    </div>
+
+    <table style="margin-top:10px">
+      <thead><tr><th>Title</th><th>Source</th><th>Link</th><th>Status</th><th>USD</th><th>MESH</th><th>Deploy</th><th>Actions</th></tr></thead>
+      <tbody id="oppTable"></tbody>
+    </table>
+
+    <div class="hr" style="height:10px"></div>
+    <strong>Ledger</strong>
+    <div class="log" id="ledgerView"></div>
+  </section>
+
+  <!-- Workforce, Auditors & Diagnostics -->
+  <section class="panel">
+    <h2>Workforce</h2>
+    <div class="row">
+      <input id="botCount" type="number" value="25" min="1" max="100000">
+      <button id="btnCreateBots" class="primary">Create Bots</button>
+      <button id="btnNuke" class="danger">Wipe</button>
+    </div>
+    <div class="log" id="botsView" style="max-height:160px"></div>
+
+    <div class="hr" style="height:8px"></div>
+    <h2>Auditors</h2>
+    <div class="row">
+      <input id="audCount" type="number" value="5" min="1" max="100000">
+      <button id="btnCreateAuditors">Create Auditors</button>
+      <label><input type="checkbox" id="autoAudit" checked> Auto‑Approve Reports</label>
+    </div>
+    <div class="log" id="auditorsView" style="max-height:120px"></div>
+
+    <div class="hr" style="height:8px"></div>
+    <h2>Diagnostics</h2>
+    <div class="row">
+      <button id="btnCopyState">Copy State JSON</button>
+      <button id="btnClearErrors">Clear Errors</button>
+    </div>
+    <div class="log" id="diagLog"></div>
+  </section>
+</main>
+
+<!-- Approve / Assign Modal -->
+<div class="modal" id="approveModal">
+  <div class="card">
+    <h3>Approve / Assign Team</h3>
+    <div class="muted">Pick bots to work. On Approve, the first selected bot deploys immediately.</div>
+    <div class="row"><strong id="apTitle">Title</strong></div>
+    <div class="row">Source: <span id="apSource"></span> &nbsp; | &nbsp; <a id="apLink" href="#" target="_blank" rel="noopener">open</a></div>
+    <div class="row">
+      Team size: <input id="apTeamSize" type="number" value="1" style="width:100px">
+      Pre‑pay MESH per bot: <input id="apMesh" type="number" value="5" style="width:100px">
+      <label><input type="checkbox" id="apOpenLink" checked> Open link on approve</label>
+      <button id="apCreate5" class="primary">Create 5 bots</button>
+    </div>
+    <div class="botgrid" id="apBotGrid"></div>
+    <div class="row">
+      <button id="apApprove" class="primary">Approve & Deploy 1</button>
+      <button id="apDeny" class="danger">Deny</button>
+      <button id="apClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reports / Audit Modal -->
+<div class="modal" id="reportModal">
+  <div class="card">
+    <h3>Bot Reports & Audit</h3>
+    <div class="muted">Enter exact USD per bot. Approve to deposit to you; reject to flag.</div>
+    <div class="row"><strong id="rpTitle">Job</strong></div>
+    <div class="row">
+      Select Bot:
+      <select id="rpBot"></select>
+      USD: <input id="rpUsd" type="number" step="0.01" value="100.00" style="width:140px">
+      Note: <input id="rpNote" placeholder="e.g., closed lead, invoice #123">
+      <button id="rpAdd" class="primary">Add Report</button>
+    </div>
+    <div class="log" id="rpList" style="max-height:260px"></div>
+    <div class="row">
+      <button id="rpClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- Utilities & State ---------- */
+const $ = s=>document.querySelector(s);
+const KEY = "mesh.dashboard.auditors.v1";
+const fmtUsd = n => (n<0? "-":"") + "$" + Math.abs(n).toFixed(2);
+const fmt = n => new Intl.NumberFormat().format(n);
+const uid = ()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+
+let S = load() || { queue:[], openedTimestamps:[], audit:[], ledger:[], usd:0, opps:[], bots:[], auditors:[], seen:{}, errors:[] };
+save();
+
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)||""); }catch(e){ return null; } }
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); render(); }
+function audit(msg){ S.audit.unshift({at:Date.now(), msg}); if(S.audit.length>800) S.audit.pop(); }
+function logErr(where, err){ S.errors.unshift({at:Date.now(), where, err: String(err&&err.message? err.message: err)}); render(); }
+window.onerror = (m, s, l, c, e)=>{ logErr("window.onerror", e||m); };
+window.addEventListener("unhandledrejection", e=>{ logErr("unhandledrejection", e.reason||e); });
+
+/* ---------- Panic Stop & Autonomy ---------- */
+let loop = null;
+function panicStop(){
+  if(loop) { clearInterval(loop); loop=null; }
+  $("#btnToggleAuto").dataset.state="off";
+  $("#btnToggleAuto").textContent="Enable Autonomy";
+  $("#autoChip").textContent="AUTONOMY OFF";
+  audit("PANIC STOP — timers cleared");
+  save();
+}
+$("#btnPanic").onclick = panicStop;
+
+$("#btnToggleAuto").onclick = ()=>{
+  const el=$("#btnToggleAuto");
+  const isOn = el.dataset.state==="on";
+  if(isOn){ panicStop(); return; }
+  el.dataset.state="on"; el.textContent="Disable Autonomy"; $("#autoChip").textContent="AUTONOMY ON";
+  const sec = Math.max(30, parseInt($("#intervalSec").value||"120",10));
+  loop = setInterval(fetchNow, sec*1000); fetchNow();
+};
+
+/* ---------- Workforce ---------- */
+$("#btnCreateBots").onclick = ()=>{
+  const n = Math.max(1, parseInt($("#botCount").value||"1",10));
+  const start = S.bots.length+1;
+  for(let i=0;i<n;i++) S.bots.push({id:uid(), name:`MeshBot-${start+i}`, mesh:0, jobs:0, status:"idle", usd:0});
+  audit(`Created ${n} bots.`); save();
+};
+$("#btnCreateAuditors").onclick = ()=>{
+  const n = Math.max(1, parseInt($("#audCount").value||"1",10));
+  const start = S.auditors.length+1;
+  for(let i=0;i<n;i++) S.auditors.push({id:uid(), name:`AuditBot-${start+i}`, audits:0, status:"idle"});
+  audit(`Created ${n} auditors.`); save();
+};
+$("#btnNuke").onclick = ()=>{
+  if(confirm("Wipe ALL data?")){
+    localStorage.removeItem(KEY);
+    S = { queue:[], openedTimestamps:[], audit:[], ledger:[], usd:0, opps:[], bots:[], auditors:[], seen:{}, errors:[] };
+    save();
+  }
+};
+
+/* ---------- Diagnostics ---------- */
+$("#btnCopyState").onclick = async ()=>{
+  try{ await navigator.clipboard.writeText(JSON.stringify(S, null, 2)); audit("State JSON copied."); render(); }
+  catch(e){ logErr("copyState", e); }
+};
+$("#btnClearErrors").onclick = ()=>{ S.errors=[]; render(); };
+
+/* ---------- Fetchers ---------- */
+$("#btnFetch").onclick = fetchNow;
+$("#btnSelfTest").onclick = ()=>{
+  const t = Date.now();
+  const fake = [
+    {id:"fx-"+t, title:"Medicare Advantage outreach (Aetna)", link:"https://example.com/aetna", source:"sample", reward:"$1500", raw:{}},
+    {id:"fx-"+(t+1), title:"AI data labeling — HIPAA compliance", link:"https://example.com/label", source:"sample", reward:"$2000", raw:{}},
+    {id:"fx-"+(t+2), title:"Insurance policy audit assistant", link:"https://example.com/audit", source:"sample", reward:"$1200", raw:{}}
+  ];
+  for(const o of fake){ if(!S.opps.find(x=>x.id===o.id)){ o.status="new"; o.reports=[]; o.usd=0; o.meshPaid=0; o.teamSize=0; o.deployed=0; S.opps.unshift(o); } if(!S.queue.find(x=>x.id===o.id)){ S.queue.push(o); } }
+  audit("Self-test jobs added."); save();
+};
+
+async function fetchNow(){
+  try{
+    const kws = $("#keywords").value.split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);
+    const min = parseInt($("#minReward").value,10)||0;
+    const useProxy = $("#useProxy").checked;
+    const includeRemoteOK = $("#useRemoteOK").checked;
+    let found = [];
+    const rss1 = $("#rss1").value.trim();
+    const rss2 = $("#rss2").value.trim();
+    if(rss1){ found = found.concat(await fetchRSS(rss1, useProxy)); }
+    if(rss2){ found = found.concat(await fetchRSS(rss2, useProxy)); }
+    if(includeRemoteOK){ found = found.concat(await fetchRemoteOK(useProxy)); }
+    const filtered = found.filter(o=> keywordPass(o, kws) && rewardPass(o, min));
+    let added=0;
+    for(const o of filtered){
+      if(!S.opps.find(x=>x.id===o.id)){ o.status="new"; o.reports=[]; o.usd=0; o.meshPaid=0; o.teamSize=0; o.deployed=0; S.opps.unshift(o); added++; }
+      if(!S.queue.find(x=>x.id===o.id)){ S.queue.push(o); }
+    }
+    if(added){ audit(`Queued ${added} opportunities.`); }
+    save();
+  }catch(e){ logErr("fetchNow", e); audit("Fetch error — see Diagnostics."); save(); }
+}
+
+async function fetchRemoteOK(useProxy){
+  const url = "https://remoteok.com/api";
+  const final = useProxy ? `https://r.jina.ai/http://remoteok.com/api` : url;
+  try{
+    const r = await fetch(final, {headers: {"User-Agent":"mesh/1.0"}});
+    const data = await r.json();
+    const out = [];
+    for(const item of data){
+      if(!item || typeof item!=="object" || !item.id) continue;
+      out.push({ id:String(item.id), title:item.position||item.title||"Untitled", link:item.url||"", source:"remoteok", reward:item.salary||null, tags:item.tags||[], raw:item });
+    }
+    return out;
+  }catch(e){ logErr("fetchRemoteOK", e); return []; }
+}
+async function fetchRSS(url, useProxy){
+  if(!url) return [];
+  const final = useProxy ? `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}` : url;
+  try{
+    const text = await (await fetch(final)).text();
+    const items = Array.from(text.matchAll(/<item>([\s\S]*?)<\/item>/g)).map(m=>m[1]);
+    const out = [];
+    for(const it of items){
+      const title = (it.match(/<title>([\s\S]*?)<\/title>/i)||[])[1] || "Untitled";
+      const link = (it.match(/<link>([\s\S]*?)<\/link>/i)||[])[1] || "";
+      const guid = (it.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i)||[])[1] || link || title;
+      out.push({ id:String(guid), title, link, source:url, reward:null, tags:[], raw:{}});
+    }
+    return out;
+  }catch(e){ logErr("fetchRSS", e); return []; }
+}
+
+/* ---------- Queue opening with caps ---------- */
+$("#btnOpenNext").onclick = ()=>{
+  const perClick = Math.max(1, parseInt($("#maxPerClick").value||"3",10));
+  const perMin = Math.max(1, parseInt($("#maxPerMin").value||"6",10));
+  const now = Date.now();
+  S.openedTimestamps = (S.openedTimestamps||[]).filter(t=> now - t < 60_000);
+  const remainingMin = Math.max(0, perMin - S.openedTimestamps.length);
+  const n = Math.min(perClick, remainingMin, S.queue.length);
+  if(n<=0){ audit("Minute cap reached; wait."); save(); return; }
+  for(let i=0;i<n;i++){
+    const item = S.queue.shift();
+    try{ window.open(item.link, "_blank", "noopener"); }catch(_){}
+    S.openedTimestamps.push(Date.now());
+  }
+  audit(`Opened ${n} tab(s).`); save();
+};
+
+/* ---------- Payments helpers ---------- */
+function cashAppLink(cashtag, amount, note){
+  const base = `https://cash.app/$${encodeURIComponent(cashtag)}`;
+  const q = new URLSearchParams();
+  if(amount) q.set("amount", String(amount.toFixed(2)));
+  if(note) q.set("note", note);
+  const qs = q.toString(); return qs? `${base}?${qs}` : base;
+}
+function paypalEmailLink(email, amount, item){
+  const params = new URLSearchParams({ cmd:"_xclick", business:email, currency_code:"USD", amount:amount.toFixed(2), item_name:item });
+  return `https://www.paypal.com/cgi-bin/webscr?${params.toString()}`;
+}
+
+/* ---------- Approval Modal ---------- */
+let apTarget = null;
+const modal = $("#approveModal");
+$("#apClose").onclick = ()=> modal.classList.remove("show");
+$("#apDeny").onclick = ()=>{ if(!apTarget) return; apTarget.status="denied"; audit(`Denied: ${apTarget.title}`); apTarget=null; modal.classList.remove("show"); save(); };
+$("#apCreate5").onclick = ()=>{
+  const start = S.bots.length+1;
+  for(let i=0;i<5;i++) S.bots.push({id:uid(), name:`MeshBot-${start+i}`, mesh:0, jobs:0, status:"idle", usd:0});
+  audit("Quick-created 5 bots."); save(); if(apTarget) populateBotGrid();
+};
+
+function openApprove(id){
+  const o = S.opps.find(x=>x.id===id); if(!o) return;
+  apTarget = o;
+  $("#apTitle").textContent = o.title || "Untitled";
+  $("#apSource").textContent = o.source || "";
+  $("#apLink").href = o.link || "#";
+  $("#apTeamSize").value = Math.max(1, o.teamSize||1);
+  $("#apMesh").value = parseInt($("#meshPerApprove").value||"5",10)||0;
+  populateBotGrid();
+  modal.classList.add("show");
+}
+function populateBotGrid(){
+  const grid = $("#apBotGrid"); grid.innerHTML="";
+  if(!S.bots.length){ const d=document.createElement("div"); d.className="muted"; d.textContent="(No bots yet. Click 'Create 5 bots'.)"; grid.append(d); return; }
+  for(const b of S.bots){
+    const id = "chk_"+b.id;
+    const wrap = document.createElement("label");
+    wrap.style.display="flex"; wrap.style.alignItems="center"; wrap.style.gap="6px";
+    wrap.innerHTML = `<input type="checkbox" id="${id}" data-bid="${b.id}"><span>${b.name} — ${b.status||"idle"}</span>`;
+    grid.append(wrap);
+  }
+}
+function selectedBotIdsFromGrid(){ return Array.from(document.querySelectorAll('#apBotGrid input[type="checkbox"]:checked')).map(x=>x.getAttribute("data-bid")); }
+
+$("#apApprove").onclick = ()=>{
+  if(!apTarget) return;
+  const need = Math.max(1, parseInt($("#apTeamSize").value||"1",10));
+  let picked = selectedBotIdsFromGrid();
+  if(picked.length===0){ alert("Select at least one bot."); return; }
+  if(picked.length > need) picked = picked.slice(0, need);
+  apTarget.assignedIds = picked;
+  apTarget.assigned = apTarget.assignedIds.map(id=> S.bots.find(b=>b.id===id)?.name || "Bot").join(", ");
+  apTarget.teamSize = apTarget.assignedIds.length;
+  apTarget.deployed = apTarget.deployed || 0;
+  apTarget.status = "approved";
+  // pre-pay mesh per selected bot
+  const preMesh = parseInt($("#apMesh").value||"0",10)||0;
+  if(preMesh>0){
+    for(const id of apTarget.assignedIds){
+      const bot = S.bots.find(b=>b.id===id);
+      if(!bot) continue;
+      bot.mesh = (bot.mesh||0) + preMesh; bot.jobs = (bot.jobs||0) + 1;
+      S.ledger.unshift({ts:Date.now(), type:"MESH_PAY", amount:-preMesh, note:`Approved: ${apTarget.title}`, bot:bot.name});
+    }
+  }
+  // open link if selected
+  if($("#apOpenLink").checked && apTarget.link){ try{ window.open(apTarget.link, "_blank", "noopener"); }catch(_){} }
+  audit(`Approved: ${apTarget.title} → Team of ${apTarget.teamSize}`);
+  // auto-deploy 1 immediately
+  deployNext(apTarget.id, true);
+  apTarget = null; modal.classList.remove("show"); save();
+};
+
+/* ---------- Deployment ---------- */
+function deployNext(oppId){
+  const o = S.opps.find(x=>x.id===oppId); if(!o || !o.assignedIds || !o.assignedIds.length) return;
+  if(o.deployed >= o.assignedIds.length){ audit(`All bots deployed for: ${o.title}`); save(); return; }
+  const nextBotId = o.assignedIds[o.deployed];
+  const bot = S.bots.find(b=>b.id===nextBotId); if(!bot){ audit("Bot missing."); save(); return; }
+  o.deployed = (o.deployed||0) + 1;
+  bot.status = "working";
+  const usdPer = parseFloat($("#usdPerDeploy").value||"0");
+  if(usdPer>0){ S.usd += usdPer; S.ledger.unshift({ts:Date.now(), type:"USD_DEPOSIT", amount: usdPer, note:`Auto deposit on deploy: ${o.title} (#${o.deployed}/${o.teamSize})`}); }
+  audit(`Deployed ${bot.name} to "${o.title}" (${o.deployed}/${o.teamSize}).`);
+  save();
+}
+function deployAll(oppId){
+  const o = S.opps.find(x=>x.id===oppId); if(!o) return;
+  const remaining = Math.max(0, (o.assignedIds?.length||0) - (o.deployed||0));
+  for(let i=0;i<remaining;i++){ deployNext(oppId); }
+  save();
+}
+
+/* ---------- Reports & Auditors ---------- */
+const rpModal = $("#reportModal");
+let rpTarget = null;
+$("#rpClose").onclick = ()=> rpModal.classList.remove("show");
+$("#rpAdd").onclick = ()=>{
+  if(!rpTarget) return;
+  const botId = $("#rpBot").value;
+  const usd = parseFloat($("#rpUsd").value||"0");
+  const note = $("#rpNote").value;
+  if(!(usd>0)){ alert("Enter USD."); return; }
+  const report = {id:uid(), botId, usd, note, status: S.autoAudit? "approved":"pending", ts: Date.now()};
+  rpTarget.reports = rpTarget.reports || [];
+  rpTarget.reports.unshift(report);
+  audit(`Report: ${fmtUsd(usd)} by ${botName(botId)} on "${rpTarget.title}" (${report.status}).`);
+  if(report.status==="approved"){ approveReport(rpTarget.id, report.id, true); }
+  save();
+};
+
+function openReports(id){
+  const o = S.opps.find(x=>x.id===id); if(!o) return;
+  rpTarget = o;
+  $("#rpTitle").textContent = o.title || "Untitled";
+  const sel = $("#rpBot"); sel.innerHTML="";
+  const ids = (o.assignedIds||[]).slice(0, o.deployed||o.assignedIds.length);
+  const botsPref = ids.map(id=> S.bots.find(b=>b.id===id)).filter(Boolean);
+  const theRest = S.bots.filter(b=> !ids.includes(b.id));
+  for(const b of botsPref.concat(theRest)){ const opt=document.createElement("option"); opt.value=b.id; opt.textContent=b.name; sel.append(opt); }
+  renderReportsList();
+  rpModal.classList.add("show");
+}
+function renderReportsList(){
+  const box = $("#rpList"); box.innerHTML="";
+  const reports = (rpTarget.reports||[]);
+  if(!reports.length){ box.textContent="No reports yet."; return; }
+  for(const r of reports){
+    const row = document.createElement("div");
+    row.innerHTML = `[${new Date(r.ts).toLocaleString()}] ${botName(r.botId)} → ${fmtUsd(r.usd)} — ${r.status.toUpperCase()} ${r.note? "— "+r.note:""}
+      ${r.status==="pending"? `<button data-appr="${r.id}">Approve</button> <button data-rej="${r.id}">Reject</button>`:""}`;
+    box.append(row);
+  }
+  box.onclick = (e)=>{
+    const a = e.target.closest("button[data-appr]");
+    const b = e.target.closest("button[data-rej]");
+    if(a){ approveReport(rpTarget.id, a.getAttribute("data-appr")); }
+    if(b){ rejectReport(rpTarget.id, b.getAttribute("data-rej")); }
+  };
+}
+function botName(id){ return S.bots.find(b=>b.id===id)?.name || "Bot"; }
+
+function approveReport(oppId, reportId, silent=false){
+  const o = S.opps.find(x=>x.id===oppId); if(!o) return;
+  const r = (o.reports||[]).find(x=>x.id===reportId); if(!r) return;
+  if(r.status!=="pending" && !silent) return;
+  r.status = "approved";
+  S.usd += r.usd;
+  S.ledger.unshift({ts:Date.now(), type:"USD_DEPOSIT", amount: r.usd, note:`Approved report: ${o.title} — ${botName(r.botId)}`});
+  const bot = S.bots.find(b=>b.id===r.botId); if(bot){ bot.usd = (bot.usd||0) + r.usd; }
+  audit(`Approved report ${fmtUsd(r.usd)} for ${botName(r.botId)} on "${o.title}".`);
+  save();
+}
+function rejectReport(oppId, reportId){
+  const o = S.opps.find(x=>x.id===oppId); if(!o) return;
+  const r = (o.reports||[]).find(x=>x.id===reportId); if(!r) return;
+  r.status = "rejected";
+  audit(`Rejected report ${fmtUsd(r.usd)} for ${botName(r.botId)} on "${o.title}".`);
+  save();
+}
+
+/* ---------- Win ---------- */
+function markWon(id){
+  const o = S.opps.find(x=>x.id===id); if(!o) return;
+  let usd = parseFloat(prompt(`Enter USD paid for "${o.title}"`, "100.00")||"0"); if(!(usd>0)) return alert("Invalid USD.");
+  S.usd += usd;
+  S.ledger.unshift({ts:Date.now(), type:"USD_DEPOSIT", amount: usd, note: `Won: ${o.title}`});
+  const meshWin = parseInt($("#meshPerWin").value||"0",10)||0;
+  for(const idBot of (o.assignedIds||[])){
+    const bot = S.bots.find(b=>b.id===idBot);
+    if(bot && meshWin>0){ bot.mesh = (bot.mesh||0) + meshWin; bot.jobs=(bot.jobs||0)+1; S.ledger.unshift({ts:Date.now(), type:"MESH_PAY", amount:-meshWin, note:`Won: ${o.title}`, bot:bot.name}); }
+  }
+  o.usd = (o.usd||0) + usd; o.status = "won";
+  const cashtag = $("#cashTag").value.trim(); const ppEmail = $("#ppEmail").value.trim(); const item = `Job Payment ${o.id}`;
+  o.paymentLinks = []; if(cashtag) o.paymentLinks.push({kind:"Cash App", url: cashAppLink(cashtag, usd, item)}); if(ppEmail) o.paymentLinks.push({kind:"PayPal", url: paypalEmailLink(ppEmail, usd, item)});
+  audit(`Won: ${o.title} — USD ${usd.toFixed(2)}.`); save();
+}
+
+/* ---------- Render ---------- */
+function render(){
+  $("#kpiQueued").textContent = String(S.queue.length);
+  const now = Date.now();
+  S.openedTimestamps = (S.openedTimestamps||[]).filter(t=> now - t < 60_000);
+  $("#kpiOpenedMin").textContent = String(S.openedTimestamps.length);
+  const earliest = Math.min(...S.openedTimestamps, Infinity);
+  $("#kpiCooldown").textContent = (earliest===Infinity? 0 : Math.max(0, 60 - Math.ceil((now - earliest)/1000))) + "s";
+  $("#kpiUsd").textContent = fmtUsd(S.usd||0);
+
+  // Queue
+  const q = $("#queueBox"); q.innerHTML="";
+  if(!S.queue.length){ q.innerHTML='<div class="muted">Queue empty. Use Fetch or Self‑Test.</div>'; }
+  else{
+    for(const it of S.queue.slice(0,50)){
+      const div = document.createElement("div");
+      div.innerHTML = `<strong>${(it.title||"Untitled")}</strong> — <a href="${it.link}" target="_blank" rel="noopener">preview</a> <span class="muted">[${it.source||""}]</span>`;
+      q.append(div);
+    }
+    if(S.queue.length>50){ const more=document.createElement("div"); more.className="muted"; more.textContent=`…and ${S.queue.length-50} more`; q.append(more); }
+  }
+
+  // Jobs
+  const tb = $("#oppTable"); tb.innerHTML="";
+  for(const o of S.opps.slice(0,300)){
+    const links = (o.paymentLinks||[]).map(L=>`<a class="btn" href="${L.url}" target="_blank" rel="noopener">${L.kind}</a>`).join(" ");
+    const actions = [];
+    if(o.status==="new" || o.status==="denied"){ actions.push(`<button data-app="${o.id}">Approve / Assign</button>`); }
+    if(o.status==="approved"){
+      actions.push(`<button data-dep1="${o.id}">Deploy 1</button>`);
+      actions.push(`<button data-depall="${o.id}">Deploy All</button>`);
+      actions.push(`<button data-report="${o.id}">Reports/Audit</button>`);
+      actions.push(`<button data-win="${o.id}">Mark Won (USD)</button>`);
+    }
+    if(o.status==="won"){
+      actions.push(`<button data-report="${o.id}">Reports/Audit</button>`);
+      actions.push(`<button data-dep1="${o.id}">Deploy 1</button>`);
+      actions.push(`<button data-depall="${o.id}">Deploy All</button>`);
+    }
+    const st = o.status||"new";
+    const team = o.teamSize||0, dep = o.deployed||0;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${o.title||""}</td><td>${o.source||""}</td>
+      <td>${o.link? `<a href="${o.link}" target="_blank" rel="noopener">open</a>`:""}</td>
+      <td>${st}${team? ` • ${dep}/${team} deployed`: ""}${o.assigned? " • "+o.assigned:""}</td>
+      <td>${o.usd? fmtUsd(o.usd): ""}</td>
+      <td>${o.meshPaid? o.meshPaid: ""}</td>
+      <td>${team? `${dep}/${team}`:"—"}</td>
+      <td>${actions.join(" ")} ${links || ""}</td>`;
+    tb.append(tr);
+  }
+  tb.onclick = (e)=>{
+    const ap = e.target.closest("button[data-app]");
+    const win = e.target.closest("button[data-win]");
+    const d1 = e.target.closest("button[data-dep1]");
+    const da = e.target.closest("button[data-depall]");
+    const rp = e.target.closest("button[data-report]");
+    if(ap){ openApprove(ap.getAttribute("data-app")); }
+    if(win){ markWon(win.getAttribute("data-win")); }
+    if(d1){ deployNext(d1.getAttribute("data-dep1")); }
+    if(da){ deployAll(da.getAttribute("data-depall")); }
+    if(rp){ openReports(rp.getAttribute("data-report")); }
+  };
+
+  // Ledger
+  $("#ledgerView").textContent = S.ledger.slice(0,200).map(e=>{
+    const t = new Date(e.ts||Date.now()).toLocaleString();
+    if(String(e.type).startsWith("USD")) return `[${t}] ${e.type}: ${e.amount>=0?"+":""}${fmtUsd(e.amount)} ${e.note||""}`;
+    if(e.type==="MESH_MINT") return `[${t}] ${e.type}: +${e.amount} MESH ${e.note||""}`;
+    return `[${t}] ${e.type}: ${e.amount} MESH ${e.bot? "→ "+e.bot:""} ${e.note||""}`;
+  }).join("\n") || "No entries.";
+
+  // Bots
+  const btxt = S.bots.slice(0,200).map(b=>`${b.name} — USD ${fmtUsd(b.usd||0)} — MESH ${fmt(b.mesh||0)} — Jobs ${fmt(b.jobs||0)} — ${b.status||"idle"}`).join("\n") || "No bots yet.";
+  $("#botsView").textContent = btxt;
+
+  // Auditors
+  const atxt = S.auditors.slice(0,200).map(a=>`${a.name} — Audits ${fmt(a.audits||0)} — ${a.status||"idle"}`).join("\n") || "No auditors yet.";
+  $("#auditorsView").textContent = atxt;
+
+  // Diagnostics
+  const diag = $("#diagLog");
+  const errs = (S.errors||[]).slice(0,60).map(e=>`[${new Date(e.at).toLocaleTimeString()}] ${e.where}: ${e.err}`).join("\n");
+  const aud = (S.audit||[]).slice(0,20).map(a=>`[${new Date(a.at).toLocaleTimeString()}] ${a.msg}`).join("\n");
+  diag.textContent = (errs? "Errors:\n"+errs+"\n\n" : "") + "Recent activity:\n" + (aud||"—");
+}
+
+/* ---------- Helpers ---------- */
+function keywordPass(o, kws){
+  if(kws.length===0) return true;
+  const blob = (o.title+" "+JSON.stringify(o.raw||{})).toLowerCase();
+  return kws.some(k=>blob.includes(k));
+}
+function rewardPass(o, min){
+  if(!min) return true;
+  const str = (o.reward||"").toString();
+  const nums = Array.from(str.matchAll(/\d[\d,]*/g)).map(m=>parseInt(m[0].replace(/,/g,""),10));
+  const top = nums.length? Math.max(...nums): 0;
+  return top >= min;
+}
+
+/* ---------- Keyboard ---------- */
+document.addEventListener("keydown", (e)=>{
+  if(e.key==="Escape") { $("#approveModal").classList.remove("show"); $("#reportModal").classList.remove("show"); }
+});
+</script>
+</body>
+</html>

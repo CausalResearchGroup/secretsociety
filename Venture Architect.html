@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venture Architect v3.0</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@700;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: #030712;
+            color: #d1d5db;
+        }
+        .font-display {
+            font-family: 'Exo 2', sans-serif;
+        }
+        .glass-pane {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(79, 70, 229, 0.4);
+        }
+        #generateBtn {
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.6), 0 0 30px rgba(79, 70, 229, 0.4) inset;
+        }
+        .output-box {
+            min-height: 400px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-4xl mx-auto">
+        <div class="glass-pane p-8 rounded-2xl shadow-2xl">
+            <header class="text-center mb-8">
+                <h1 class="font-display text-5xl font-black text-indigo-300 tracking-wider">VENTURE ARCHITECT</h1>
+                <p class="text-indigo-400/70 mt-2">Systemic Business Plan Generator v3.0</p>
+            </header>
+
+            <main>
+                <div class="text-center mb-8">
+                    <button id="generateBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 px-8 rounded-lg text-xl transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-indigo-400/50">
+                        ARCHITECT NEW VENTURE
+                    </button>
+                </div>
+
+                <textarea id="output" class="output-box w-full bg-gray-900/70 p-6 rounded-lg border border-gray-700 text-gray-300" readonly>Awaiting architectural blueprint...</textarea>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA MODULES ---
+        const industries = ["Decentralized Finance", "Bio-Hacking", "Sustainable Agriculture", "Personalized Education", "Off-Grid Energy", "Drone Logistics", "Asteroid Mining", "VR Therapy", "Secure Communications", "Waste Upcycling", "3D-Printed Housing", "AI-Driven Art"];
+        const targetAudiences = ["Sovereign Individuals", "Remote Communities", "Digital Nomads", "Post-Collapse Survivors", "Urban Homesteaders", "Bio-Engineers", "Ethical Hackers", "Independent Journalists", "System Architects", "Early Adopters", "High-Net-Worth Preppers"];
+        const businessModels = ["Subscription Service", "Decentralized Autonomous Organization (DAO)", "Pay-Per-Use Hardware", "Open-Source with Paid Support", "Barter Network", "Private Consulting", "Technology Licensing", "D2C Kits", "P2P Marketplace", "Ethical Data Monetization", "Tokenized Ownership"];
+        const technologies = ["Blockchain", "CRISPR", "AGI", "Nanotechnology", "Quantum Computing", "Mesh Networking", "Fusion Energy", "Neural Interfaces", "Autonomous Robotics", "Synthetic Biology", "Causal Analysis"];
+
+        // --- APPLICATION LOGIC ---
+        const generateBtn = document.getElementById('generateBtn');
+        const outputTextarea = document.getElementById('output');
+
+        function getRandomElement(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function typeText(element, text) {
+            element.value = '';
+            let i = 0;
+            const typing = setInterval(() => {
+                if (i < text.length) {
+                    element.value += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(typing);
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'ARCHITECT NEW VENTURE';
+                }
+            }, 10); // Typing speed
+        }
+
+        function generateVenture() {
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'GENERATING BLUEPRINT...';
+            outputTextarea.value = 'Analyzing causal vectors...';
+
+            setTimeout(() => {
+                const industry = getRandomElement(industries);
+                const audience = getRandomElement(targetAudiences);
+                const model = getRandomElement(businessModels);
+                const tech = getRandomElement(technologies);
+
+                // Generate a Venture Name and Tagline
+                const namePart1 = industry.split(' ')[0];
+                const namePart2 = audience.split(' ').pop();
+                const ventureName = `${namePart1} ${namePart2}`;
+                const tagline = `Sovereignty through ${tech}.`;
+
+                // Generate the full Business Plan
+                const blueprint = `
+// --- VENTURE BLUEPRINT --- //
+
+VENTURE NAME: ${ventureName}
+TAGLINE: ${tagline}
+
+----------------------------------------
+
+MISSION STATEMENT:
+To empower ${audience} with a resilient, decentralized, and sovereign solution for ${industry}, powered by cutting-edge ${tech}.
+
+----------------------------------------
+
+PROBLEM STATEMENT:
+${audience} currently lack access to reliable and censorship-resistant tools for ${industry.toLowerCase()}. Centralized systems are vulnerable to failure, control, and do not serve the unique needs of a sovereign individual or community.
+
+----------------------------------------
+
+CORE PRODUCT / SERVICE:
+A ${model} that provides secure, autonomous access to a suite of ${industry.toLowerCase()} tools. The system leverages ${tech} to ensure operational sovereignty, data integrity, and efficiency, even in low-infrastructure or post-collapse environments. The core offering is a self-contained hardware/software package that operates independently of any centralized grid.
+
+----------------------------------------
+
+TARGET MARKET:
+Our primary market is ${audience}, a growing demographic that values self-reliance, privacy, and resilience. They are early adopters of new technology and are actively seeking solutions that reduce their dependence on fragile, centralized systems.
+
+----------------------------------------
+
+MONETIZATION STRATEGY:
+Primary revenue will be generated through the ${model}. Secondary streams will be established via:
+1. Technology Licensing: Providing the core ${tech} framework to allied enterprises.
+2. Private Consulting: Offering strategic integration services for high-net-worth clients and communities.
+3. Data Sovereignty: An ethical data monetization pool, controlled entirely by the user DAO.
+
+----------------------------------------
+
+FIRST STEPS (ACTIONABLE PLAN):
+1. Develop a minimum viable product (MVP) focusing on the core ${tech} application.
+2. Identify and engage with a small, dedicated group of ${audience} for beta testing.
+3. Secure initial seed capital by demonstrating the value of a single, high-impact use case.
+4. Build a community-driven development model via a ${model === 'DAO' ? 'native token launch' : 'private forum'}.
+                `;
+
+                typeText(outputTextarea, blueprint.trim());
+            }, 500);
+        }
+
+        generateBtn.addEventListener('click', generateVenture);
+    </script>
+
+</body>
+</html>

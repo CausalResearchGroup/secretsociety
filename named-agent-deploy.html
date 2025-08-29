@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Temporal Causal Chain Visualization</title>
+<style>
+  body {
+    font-family: monospace;
+    background: #000;
+    color: #0ff;
+    margin: 2rem;
+  }
+  .timeline {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+  }
+  .state {
+    background: #022;
+    border: 2px solid #0ff;
+    border-radius: 12px;
+    padding: 1rem;
+    width: 80px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s;
+  }
+  .state:hover {
+    background-color: #044;
+  }
+  .true {
+    color: #0f0;
+    font-weight: bold;
+  }
+  .false {
+    color: #f00;
+    font-weight: normal;
+  }
+  .formula {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 1.2rem;
+  }
+</style>
+</head>
+<body>
+
+<h2>Evaluate and Visualize Temporal Causal Chain</h2>
+
+<div class="timeline" id="timeline">
+  <!-- States will be inserted here -->
+</div>
+<div class="formula">
+  Formula (example): <code>F(A)</code> — Eventually A
+</div>
+<p>Click circles below to toggle if proposition A is true at that time.</p>
+
+<script>
+// Number of states (time steps)
+const states = 10;
+
+// Array to hold if proposition A is true at each state
+const truthValues = Array(states).fill(false);
+
+// Container div
+const timeline = document.getElementById('timeline');
+
+// Function to render states dynamically
+function renderStates() {
+  timeline.innerHTML = '';
+
+  for (let i = 0; i < states; i++) {
+    const stateDiv = document.createElement('div');
+    stateDiv.className = 'state';
+
+    // Create toggle circle for atomic proposition A
+    const toggleBtn = document.createElement('span');
+    toggleBtn.style.display = 'inline-block';
+    toggleBtn.style.width = '24px';
+    toggleBtn.style.height = '24px';
+    toggleBtn.style.borderRadius = '50%';
+    toggleBtn.style.border = '2px solid #0ff';
+    toggleBtn.style.margin = '0 auto 10px';
+    toggleBtn.style.cursor = 'pointer';
+    toggleBtn.style.backgroundColor = truthValues[i] ? '#0f0' : '#400';
+    toggleBtn.title = `Time state ${i}: ${truthValues[i] ? 'True' : 'False'}`;
+
+    toggleBtn.onclick = () => {
+      truthValues[i] = !truthValues[i];
+      renderStates();
+      evaluateEventually(truthValues);
+    };
+
+    const label = document.createElement('div');
+    label.textContent = `t = ${i}`;
+
+    stateDiv.appendChild(toggleBtn);
+    stateDiv.appendChild(label);
+    timeline.appendChild(stateDiv);
+  }
+}
+
+// Example Temporal Logic Evaluation: Eventually A (F A)
+// Checks if A is true at any future or current state
+function evaluateEventually(truthArr) {
+  const result = truthArr.some(val => val === true);
+  setTimeout(() => {
+    alert(`Formula F(A) evaluates to: ${result ? 'TRUE' : 'FALSE'}`);
+  }, 100);
+}
+
+renderStates();
+</script>
+
+</body>
+</html>

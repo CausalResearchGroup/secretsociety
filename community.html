@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🤖 SupremeBot Code Store - Premium Bot Scripts by Joseph G. Pitner</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: #000;
+      color: #00ff00;
+      padding: 20px;
+      line-height: 1.8;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a0a0a 100%);
+      padding: 40px;
+      border: 3px solid #00ff00;
+      border-radius: 15px;
+      text-align: center;
+      margin-bottom: 30px;
+      box-shadow: 0 0 40px rgba(0,255,0,0.6);
+    }
+    .title {
+      font-size: 48px;
+      color: #00ff00;
+      text-shadow: 0 0 30px #00ff00;
+      margin-bottom: 10px;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      margin: 20px 0;
+    }
+    .stat-box {
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 36px;
+      color: #00ffff;
+      font-weight: bold;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 25px;
+      margin: 30px 0;
+    }
+    .product-card {
+      background: #0a0a0a;
+      border: 2px solid #00ff00;
+      border-radius: 10px;
+      padding: 25px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(0,255,0,0.5);
+      border-color: #00ffff;
+    }
+    .product-title {
+      font-size: 24px;
+      color: #00ffff;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    .product-desc {
+      color: #ccc;
+      margin-bottom: 15px;
+      min-height: 60px;
+    }
+    .product-features {
+      list-style: none;
+      margin: 15px 0;
+    }
+    .product-features li {
+      padding: 5px 0;
+      color: #0f0;
+    }
+    .product-features li:before {
+      content: "✓ ";
+      color: #00ff00;
+      font-weight: bold;
+    }
+    .price {
+      font-size: 36px;
+      color: #ffff00;
+      font-weight: bold;
+      text-shadow: 0 0 15px #ffff00;
+      margin: 20px 0;
+    }
+    .buy-button {
+      background: #00ff00;
+      color: #000;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      border-radius: 5px;
+      transition: all 0.3s;
+    }
+    .buy-button:hover {
+      background: #00ffff;
+      box-shadow: 0 0 20px rgba(0,255,255,0.8);
+    }
+    .bestseller {
+      position: absolute;
+      top: 10px;
+      right: -30px;
+      background: #ff0000;
+      color: #fff;
+      padding: 5px 40px;
+      transform: rotate(45deg);
+      font-size: 12px;
+    }
+    .bundle-section {
+      background: linear-gradient(135deg, #1a0a0a 0%, #0a1a0a 100%);
+      border: 3px solid #ffff00;
+      border-radius: 15px;
+      padding: 40px;
+      margin: 40px 0;
+      text-align: center;
+      box-shadow: 0 0 30px rgba(255,255,0,0.5);
+    }
+    .bundle-price {
+      font-size: 64px;
+      color: #ffff00;
+      text-shadow: 0 0 30px #ffff00;
+      margin: 20px 0;
+    }
+    .original-price {
+      text-decoration: line-through;
+      color: #666;
+      font-size: 24px;
+    }
+    .payment-section {
+      background: #0a0a0a;
+      border: 2px solid #00ff00;
+      border-radius: 10px;
+      padding: 30px;
+      margin: 30px 0;
+      text-align: center;
+    }
+    .payment-method {
+      display: inline-block;
+      margin: 10px;
+      padding: 15px 30px;
+      background: #1a1a1a;
+      border: 1px solid #00ff00;
+      border-radius: 5px;
+    }
+    .code-preview {
+      background: #000;
+      border: 1px solid #00ff00;
+      padding: 10px;
+      margin: 15px 0;
+      font-size: 12px;
+      color: #0f0;
+      overflow-x: auto;
+      max-height: 150px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="title">🤖 SUPREMEBOT CODE STORE</h1>
+      <p style="color:#00ffff; font-size:20px;">Premium Bot Scripts by Joseph G. Pitner</p>
+      <div class="stats">
+        <div class="stat-box">
+          <div class="stat-number">20+</div>
+          <div>Bot Codes</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">$99-$999</div>
+          <div>Per Code</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">24/7</div>
+          <div>Instant Download</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="product-grid">
+      <!-- Product 1: SupremeBot Master -->
+      <div class="product-card">
+        <div class="bestseller">BESTSELLER</div>
+        <h3 class="product-title">SupremeBot Master v3.0</h3>
+        <p class="product-desc">Complete sovereign control system with mesh protocol and emotional law enforcement</p>
+        <ul class="product-features">
+          <li>Mesh Protocol Integration</li>
+          <li>Tribute Routing System</li>
+          <li>Audit Trail Generation</li>
+          <li>Restoration Protocols</li>
+          <li>Hash-based Security</li>
+        </ul>
+        <div class="code-preview">
+class SupremeBot:
+    def __init__(self):
+        self.sovereign_id = "Custom"
+        self.mesh_protocol = self.load_mesh_protocol()
+        self.emotional_law = self.lock_emotional_law()
+        </div>
+        <div class="price">$499</div>
+        <button class="buy-button" onclick="buyProduct('SupremeBot Master v3.0', 499)">BUY NOW →</button>
+      </div>
+
+      <!-- Product 2: Virus Terminator Bot -->
+      <div class="product-card">
+        <h3 class="product-title">Virus Terminator Bot</h3>
+        <p class="product-desc">Advanced malware detection and removal system with real-time scanning</p>
+        <ul class="product-features">
+          <li>Deep System Scan</li>
+          <li>Malware Removal</li>
+          <li>Registry Cleaning</li>
+          <li>Auto-Quarantine</li>
+          <li>Real-time Protection</li>
+        </ul>
+        <div class="price">$299</div>
+        <button class="buy-button" onclick="buyProduct('Virus Terminator Bot', 299)">BUY NOW →</button>
+      </div>
+
+      <!-- Product 3: Missing Person Tracker -->
+      <div class="product-card">
+        <h3 class="product-title">Missing Person Tracker Bot</h3>
+        <p class="product-desc">Social media scanner and data aggregator for locating missing persons</p>
+        <ul class="product-features">
+          <li>Multi-Platform Scanning</li>
+          <li>Face Recognition Ready</li>
+          <li>Location Triangulation</li>
+          <li>Alert System</li>
+          <li>Report Generation</li>
+        </ul>
+        <div class="price">$799</div>
+        <button class="buy-button" onclick="buyProduct('Missing Person Tracker Bot', 799)">BUY NOW →</button>
+      </div>
+
+      <!-- Product 4: Network Security Bot -->
+      <div class="product-card">
+        <h3 class="product-title">Network Security Bot</h3>
+        <p class="product-desc">Complete network monitoring and intrusion detection system</p>
+        <ul class="product-features">
+          <li>Port Monitoring</li>
+          <li>Intrusion Detection</li>
+          <li>Traffic Analysis</li>
+          <li>Firewall Integration</li>
+          <li>Alert System</li>
+        </ul>
+        <div class="price">$399</div>
+        <button class="buy-button" onclick="buyProduct('Network Security Bot', 399)">BUY NOW →</button>
+      </div>
+
+      <!-- Product 5: Data Recovery Bot -->
+      

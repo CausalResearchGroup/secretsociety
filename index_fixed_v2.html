@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>pitner 33 Digital Bots - Free Bot Fixes</title>
+  <meta name="description" content="pitner 33's Digital Bots: Free software bot fixes. Donate at paypal.me/pitner33 or Cash App $pitner33.">
+  <meta name="keywords" content="digital bots, free bot fixes, pitner 33, donation">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .log-area {
+      max-height: 200px;
+      overflow-y: auto;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin-bottom: 15px;
+      font-family: monospace;
+      font-size: 14px;
+      border-radius: 5px;
+    }
+    .status-bar {
+      text-align: center;
+      padding: 10px;
+      background-color: #e9ecef;
+      border-radius: 5px;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    .control-section {
+      background-color: #fff;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+    }
+    .pitch-section {
+      background: #fff;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
+    }
+    .pitch-section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .pitch-section li {
+      padding: 5px 0;
+    }
+    .pitch-section li:before {
+      content: "✓ ";
+      color: #28a745;
+    }
+    .bot-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin: 15px 0;
+    }
+    .bot-card {
+      background: #fff;
+      border: 1px solid #28a745;
+      border-radius: 5px;
+      padding: 10px;
+      transition: all 0.3s;
+    }
+    .bot-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .bot-title {
+      font-size: 18px;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    .bot-desc {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 15px;
+      background: #e9ecef;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #28a745;
+      width: 0%;
+      transition: width 0.5s;
+    }
+    .donation-display {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #fff;
+      border: 1px solid #28a745;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .donation-amount {
+      font-size: 20px;
+      color: #28a745;
+      font-weight: bold;
+    }
+    h1, h2 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 24px;
+    }
+    .text-success { color: #28a745 !important; }
+    .text-warning { color: #ffc107 !important; }
+    .contact-info {
+      background-color: #e9ecef;
+      padding: 10px;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      text-align: center;
+      font-size: 14px;
+    }
+    a { color: #007bff; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .donate-button {
+      background: #28a745;
+      color: #fff;
+      border: none;
+      padding: 8px 15px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 5px;
+      transition: all 0.3s;
+      margin: 5px;
+    }
+    .donate-button:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center mb-4">pitner 33 Digital Bots</h1>
+    <div class="contact-info">
+      <strong>Teal Hill Sanctuary</strong><br>
+      529 Teal Hill Rd, Sugar Grove, PA 16350<br>
+      Contact: <a href="mailto:joepitner32@gmail.com">joepitner32@gmail.com</a><br>
+      Donate: <a href="https://paypal.me/pitner33">paypal.me/pitner33</a> | Cash App: <a href="https://cash.app/$pitner33">$pitner33</a><br>
+      Mission: Free software bot fixes by pitner 33’s digital bots
+    </div>
+
+    <!-- Donation Counter -->
+    <div class="donation-display">
+      <div class="donation-amount" id="donationAmount">$0</div>
+      <div>Donations Received</div>
+    </div>
+
+    <!-- Donation Pitch -->
+    <div class="pitch-section">
+      <h2>Support pitner 33’s Digital Bots</h2>
+      <p>Our digital bots fix software bots (e.g., Discord, Python) for free at Teal Hill Sanctuary.</p>
+      <p><strong>Why Donate?</strong> Free fixes with transparent logs. Join the Bot Fix Challenge: donate $5-$50, get a shoutout!</p>
+      <ul>
+        <li>Fixing Discord bots, trading bots, and more</li>
+        <li>50 bots found, 20 fixed/month (simulated)</li>
+        <li>Promoting on X, Reddit, Discord</li>
+      </ul>
+      <p>Donate at <a href="https://paypal.me/pitner33">paypal.me/pitner33</a> or <a href="https://cash.app/$pitner33">$pitner33</a>!</p>
+    </div>
+
+    <!-- Digital Bots -->
+    <div class="control-section">
+      <h2>Your Digital Bots</h2>
+      <div class="bot-grid" id="botGrid"></div>
+      <p class="text-muted">These bots find, scramble, and fix software bots for free.</p>
+    </div>
+
+    <!-- Finding Bots -->
+    <div class="control-section">
+      <h2>Finding Broken Bots</h2>
+      <div class="log-area" id="findLog"></div>
+      <p class="text-muted">Scans for broken bots every 10 seconds.</p>
+    </div>
+
+    <!-- Fixing Bots -->
+    <div class="control-section">
+      <h2>Fixing Bots</h2>
+      <div class="progress-bar"><div class="progress-fill" id="fixProgress"></div></div>
+      <div class="log-area" id="fixLog"></div>
+      <p class="text-muted">Scrambles and fixes bots every 15 seconds.</p>
+    </div>
+
+    <!-- Reaching Out -->
+    <div class="control-section">
+      <h2>Reaching Out for Donors</h2>
+      <div class="log-area" id="outreachLog"></div>
+      <p class="text-muted">Sends donation requests every 20 seconds.</p>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar">
+      Bots Found: <span id="botsFound">0</span> |
+      Bots Fixed: <span id="botsFixed">0</span> |
+      Requests Sent: <span id="requestsSent">0</span> |
+      Status: <span id="systemStatus" class="text-success">Running</span>
+    </div>
+  </div>
+
+  <script>
+    // Digital bot data (simulating CIDs)
+    const botData = [
+      { id: '∞0001', name: 'Discord Fixer', desc: 'Fixes Discord bot command errors.', status: 'Active' },
+      { id: '∞0002', name: 'Python Scraper', desc: 'Restores web scraping scripts.', status: 'Active' },
+      { id: '∞0003', name: 'Trade Bot', desc: 'Repairs crypto trading bots.', status: 'Fixing' },
+      { id: '∞0004', name: 'Chat Optimizer', desc: 'Improves chatbot responses.', status: 'Active' },
+      { id: '∞0005', name: 'Security Bot', desc: 'Fixes network monitoring bots.', status: 'Fixing' },
+    ];
+
+    // Platforms for outreach
+    const platforms = ['X Platform', 'Reddit', 'Discord'];
+
+    // Metrics
+    let botsFound = 0;
+    let botsFixed = 0;
+    let requestsSent = 0;
+    let donationTotal = 0;
+
+    // Log function
+    function log(message, logElement) {
+      const logDiv = document.getElementById(logElement);
+      if (!logDiv) return;
+      const timestamp = new Date().toLocaleString();
+      logDiv.innerHTML += `[${timestamp}] ${message}<br>`;
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    // Update status
+    function updateStatus() {
+      document.getElementById('botsFound').textContent = botsFound;
+      document.getElementById('botsFixed').textContent = botsFixed;
+      document.getElementById('requestsSent').textContent = requestsSent;
+      document.getElementById('donationAmount').textContent = `$${donationTotal}`;
+      const statusElement = document.getElementById('systemStatus');
+      if (botsFixed > 20) {
+        statusElement.textContent = 'Busy';
+        statusElement.className = 'text-warning';
+      } else {
+        statusElement.textContent = 'Running';
+        statusElement.className = 'text-success';
+      }
+    }
+
+    // Update progress bar
+    function updateProgress() {
+      const progress = Math.min((botsFixed / 50) * 100, 100);
+      document.getElementById('fixProgress').style.width = `${progress}%`;
+    }
+
+    // Render bot cards
+    function renderBotCards() {
+      const botGrid = document.getElementById('botGrid');
+      botGrid.innerHTML = '';
+      botData.forEach(bot => {
+        const card = document.createElement('div');
+        card.className = 'bot-card';
+        card.innerHTML = `
+          <h3 class="bot-title">${bot.name} (${bot.id})</h3>
+          <p class="bot-desc">${bot.desc}</p>
+          <p>Status: <span class="${bot.status === 'Active' ? 'text-success' : 'text-warning'}">${bot.status}</span></p>
+          <button class="donate-button" onclick="window.open('https://paypal.me/pitner33', '_blank')">PayPal</button>
+          <button class="donate-button" onclick="window.open('https://cash.app/$pitner33', '_blank')">Cash App</button>
+        `;
+        botGrid.appendChild(card);
+      });
+    }
+
+    // Auto-find bots
+    function autoFindBot() {
+      const botId = `BOT-${Math.floor(Math.random() * 999).toString().padStart(3, '0')}`;
+      log(`Finding bot ${botId}...`, 'findLog');
+      setTimeout(() => {
+        log(`<span class="text-success">Found ${botId}: Needs fixing</span>`, 'findLog');
+        botsFound++;
+        updateStatus();
+      }, 1000);
+    }
+
+    // Auto-scramble and fix
+    function autoScrambleFixBot() {
+      const botId = `BOT-${Math.floor(Math.random() * 999).toString().padStart(3, '0')}`;
+      log(`Scrambling and fixing ${botId}...`, 'fixLog');
+      setTimeout(() => {
+        log(`<span class="text-success">${botId} fixed by pitner 33</span>`, 'fixLog');
+        botsFixed++;
+        donationTotal += Math.floor(Math.random() * 46) + 5; // Simulate $5-$50
+        updateStatus();
+        updateProgress();
+      }, 1500);
+    }
+
+    // Auto-reach out
+    function autoReachOut() {
+      const platform = platforms[Math.floor(Math.random() * platforms.length)];
+      log(`Sending donation request to ${platform}...`, 'outreachLog');
+      setTimeout(() => {
+        const success = Math.random() > 0.5;
+        if (success) {
+          log(`<span class="text-success">${platform} responded! Donate at paypal.me/pitner33</span>`, 'outreachLog');
+        } else {
+          log(`<span class="text-warning">No response from ${platform}</span>`, 'outreachLog');
+        }
+        requestsSent++;
+        updateStatus();
+      }, 1500);
+    }
+
+    // Start operations
+    function startAutoOperations() {
+      setInterval(autoFindBot, 10000);
+      setInterval(autoScrambleFixBot, 15000);
+      setInterval(autoReachOut, 20000);
+      autoFindBot();
+      setTimeout(autoScrambleFixBot, 2000);
+      setTimeout(autoReachOut, 3000);
+    }
+
+    // Initialize
+    renderBotCards();
+    log('pitner 33 Digital Bots Online', 'findLog');
+    log('Finding, fixing, and reaching out for donations', 'findLog');
+    log('Donate: paypal.me/pitner33 or $pitner33', 'outreachLog');
+    updateStatus();
+    window.addEventListener('load', startAutoOperations);
+  </script>
+</body>
+</html>
+      
